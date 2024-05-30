@@ -1,0 +1,27 @@
+name: Update OPTIONS.md
+
+on:
+  push:
+    branches:
+      - main
+    paths: 
+      - module.nix
+      - options/default.nix
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Nix
+        uses: cachix/install-nix-action@v26 
+        with:
+          nix_path: nixpkgs=channel:nixos-23.11
+      - name: Update OPTIONS.md 
+        run: nix run .#options
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'OPTIONS.md'
+          message: 'docs: update OPTIONS.md'
+          push: true

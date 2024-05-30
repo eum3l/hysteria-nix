@@ -1,0 +1,17 @@
+name: Check Hysteria 
+
+on: 
+  - pull_request 
+  - push
+    
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@v26 
+        with:
+          nix_path: nixpkgs=channel:nixos-23.11
+      - name: Run Flake Check
+        run: nix flake check 
