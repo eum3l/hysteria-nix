@@ -6,7 +6,7 @@ packages:
   ...
 }:
 let
-  inherit (lib) mkOption;
+  inherit (lib) mkOption optionals;
   cfg = config.services.hysteria;
 in
 with lib.types;
@@ -27,12 +27,25 @@ with lib.types;
                 cfg.settingsFile;
           in
           {
-            boot.kernel.sysctl = lib.mkIf (cfg ? tun) (
-              lib.optionalAttrs (cfg.tun != null) {
+            boot.kernel.sysctl = lib.mkIf (type == "client") (
+              lib.optionalAttrs (cfg.settings.tun != null) {
                 "net.ipv4.conf.default.rp_filter" = 2;
                 "net.ipv4.conf.all.rp_filter" = 2;
               }
             );
+
+            networking.firewall.allowedTCPPorts =
+              let
+                getPort = address: lib.toInt (builtins.elemAt (builtins.split ":" address) 2);
+              in
+              lib.mkIf (type == "server") (
+                optionals cfg.openFirewall [ (getPort cfg.settings.listen) ]
+                ++ (optionals (cfg.settings.masquerade != null) [
+                  (getPort srvConf.masquerade.listenHTTP)
+                  (getPort cfg.settings.masquerade.listenHTTPS)
+                ])
+
+              );
 
             security.wrappers."hysteria-${type}" = rec {
               owner = cfg.user;
@@ -85,6 +98,10 @@ with lib.types;
   options.services.hysteria =
     let
       defaultOptions = type: {
+        enable = lib.mkEnableOption ''
+          Hysteria (${type}), a powerful, lightning fast and censorship resistant proxy.
+        '';
+
         package = lib.mkPackageOption packages.${pkgs.system} "hysteria" { default = "hysteria"; };
 
         settingsFile = mkOption {
@@ -220,9 +237,14 @@ with lib.types;
     in
     {
       server = (defaultOptions "server") // {
-        enable = lib.mkEnableOption ''
-          Hysteria (server), a powerful, lightning fast and censorship resistant proxy.
-        '';
+        openFirewall = mkOption {
+          description = ''
+            Open the firewall for the Hysteria server.
+          '';
+          default = false;
+          example = true;
+          type = bool;
+        };
 
         settings = mkOption {
           description = "Hysteria server settings";
@@ -625,7 +647,19 @@ with lib.types;
                     file = mkOption {
                       description = "The path to the ACL file.";
                       example = "./some.txt";
-                      type = path;
+                      default = null;
+                      type = nullOr path;
+                    };
+                    inline = mkOption {
+                      description = "The list of inline ACL rules. [ACL documentation](https://v2.hysteria.network/docs/advanced/ACL/)]";
+                      default = null;
+                      example = [
+                        "reject(suffix:v2ex.com)"
+                        "reject(all, udp/443)"
+                        "reject(geoip:cn)"
+                        "reject(geosite:netflix)"
+                      ];
+                      type = nullOr (listOf str);
                     };
                     geoip = mkOption {
                       description = ''
@@ -853,7 +887,8 @@ with lib.types;
                   options = {
                     type = mkOption {
                       description = "Masquerade type";
-                      example = "proxy";
+                      example = "string";
+                      default = "proxy";
                       type = enum [
                         "file"
                         "proxy"
@@ -943,10 +978,6 @@ with lib.types;
         };
       };
       client = (defaultOptions "client") // {
-        enable = lib.mkEnableOption ''
-          Hysteria (server), a powerful, lightning fast and censorship resistant proxy.
-        '';
-
         settings = mkOption {
           description = "Hysteria client settings";
           default = null;
