@@ -12,7 +12,7 @@ Working directory of the OpenGFW service and home of `hysteria-client.user`.
 ---
  
 ## services.hysteria.client.enable
-Whether to enable Hysteria (server), a powerful, lightning fast and censorship resistant proxy.
+Whether to enable Hysteria (client), a powerful, lightning fast and censorship resistant proxy.
 .
 ### Type
 ```
@@ -999,6 +999,22 @@ one of "debug", "info", "warn", "error"
 ```
 ---
  
+## services.hysteria.server.openFirewall
+Open the firewall for the Hysteria server.
+### Type
+```
+boolean
+```
+### Default
+```nix
+false
+```
+### Example 
+```nix
+true
+```
+---
+ 
 ## services.hysteria.server.package
 The hysteria package to use.
 ### Type
@@ -1046,7 +1062,11 @@ null
 The path to the ACL file.
 ### Type
 ```
-path
+null or path
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -1105,6 +1125,27 @@ null
 ### Example 
 ```nix
 "./geoip.dat"
+```
+---
+ 
+## services.hysteria.server.settings.acl.inline
+The list of inline ACL rules. [ACL documentation](https://v2.hysteria.network/docs/advanced/ACL/)]
+### Type
+```
+null or (list of string)
+```
+### Default
+```nix
+null
+```
+### Example 
+```nix
+[
+  "reject(suffix:v2ex.com)"
+  "reject(all, udp/443)"
+  "reject(geoip:cn)"
+  "reject(geosite:netflix)"
+]
 ```
 ---
  
@@ -1676,9 +1717,13 @@ Masquerade type
 ```
 one of "file", "proxy", "string"
 ```
-### Example 
+### Default
 ```nix
 "proxy"
+```
+### Example 
+```nix
+"string"
 ```
 ---
  
