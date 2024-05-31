@@ -6,7 +6,7 @@ packages:
   ...
 }:
 let
-  inherit (lib) mkOption optionals;
+  inherit (lib) mkOption optionals mkIf;
   cfg = config.services.hysteria;
 in
 with lib.types;
@@ -27,7 +27,7 @@ with lib.types;
                 cfg.settingsFile;
           in
           {
-            boot.kernel.sysctl = lib.mkIf (type == "client") (
+            boot.kernel.sysctl = mkIf (type == "client") (
               lib.optionalAttrs (cfg.settings.tun != null) {
                 "net.ipv4.conf.default.rp_filter" = 2;
                 "net.ipv4.conf.all.rp_filter" = 2;
@@ -38,7 +38,7 @@ with lib.types;
               let
                 getPort = address: lib.toInt (builtins.elemAt (builtins.split ":" address) 2);
               in
-              lib.mkIf (type == "server") (
+              mkIf (type == "server") (
                 optionals cfg.openFirewall [ (getPort cfg.settings.listen) ]
                 ++ (optionals (cfg.settings.masquerade != null) [
                   (getPort srvConf.masquerade.listenHTTP)
@@ -59,7 +59,7 @@ with lib.types;
               wantedBy = [ "multi-user.target" ];
               after = [ "network.target" ];
 
-              preStart = lib.mkIf (settings != null) "ln -sf ${settings} config.yaml";
+              preStart = mkIf (settings != null) "ln -sf ${settings} config.yaml";
 
               script = ''
                 ${config.security.wrapperDir}/hysteria-${type} ${type} \
@@ -91,8 +91,22 @@ with lib.types;
         );
     in
     [
-      (lib.mkIf cfg.client.enable (mkHysteria "client"))
-      (lib.mkIf cfg.server.enable (mkHysteria "server"))
+      (mkIf cfg.client.enable (mkHysteria "client"))
+      (mkIf cfg.server.enable (mkHysteria "server"))
+      {
+        assertions =
+          let
+            set = value: value == null;
+          in
+          [
+            (mkIf (cfg.server.settings.acl != null) {
+              assertion = (set cfg.server.settings.acl.inline) && (set cfg.server.settings.acl.file);
+              message = ''
+                You can have either `file` or `inline`, but not both. (server.settings.acl)
+              '';
+            })
+          ];
+      }
     ];
 
   options.services.hysteria =
@@ -165,7 +179,7 @@ with lib.types;
               type = mkOption {
                 description = "Obfuscation type";
                 default = "salamander";
-                type = str;
+                type = enum [ "salamander" ];
               };
               salamander = {
                 password = mkOption {
@@ -458,7 +472,13 @@ with lib.types;
                     type = mkOption {
                       description = "Authentication type.";
                       default = "password";
-                      type = str;
+                      example = "userpass";
+                      type = enum [
+                        "password"
+                        "userpass"
+                        "http"
+                        "command"
+                      ];
                     };
                     password = mkOption {
                       description = "Replace with a strong password of your choice.";
