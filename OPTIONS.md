@@ -298,7 +298,7 @@ string
 Obfuscation type
 ### Type
 ```
-string
+value "salamander" (singular enum)
 ```
 ### Default
 ```nix
@@ -1408,11 +1408,15 @@ null
 Authentication type.
 ### Type
 ```
-string
+one of "password", "userpass", "http", "command"
 ```
 ### Default
 ```nix
 "password"
+```
+### Example 
+```nix
+"userpass"
 ```
 ---
  
@@ -1758,7 +1762,7 @@ string
 Obfuscation type
 ### Type
 ```
-string
+value "salamander" (singular enum)
 ```
 ### Default
 ```nix
