@@ -12,7 +12,7 @@ Working directory of the OpenGFW service and home of `hysteria-client.user`.
 ---
  
 ## services.hysteria.client.enable
-Whether to enable Hysteria (client), a powerful, lightning fast and censorship resistant proxy.
+Whether to enable Hysteria (client, a powerful, lightning fast and censorship resistant proxy.
 .
 ### Type
 ```
@@ -88,7 +88,11 @@ null
 If the server uses the `userpass` authentication, the format must be `username:password`.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -102,7 +106,7 @@ Which one to use depends on whether bandwidth information is provided.
 If you want to use BBR instead of Brutal, you can delete the entire bandwidth section.
 For more details, see [Bandwidth negotiation process](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#bandwidth-negotiation-process) and [Congestion control details](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#congestion-control-details).
 
-> ⚠️ Warning Higher bandwidth values are not always better; be very careful not to exceed the maximum bandwidth that your current network can support.
+> ⚠️ **Warning** Higher bandwidth values are not always better; be very careful not to exceed the maximum bandwidth that your current network can support.
 > Doing so will backfire, causing network congestion and unstable connections.
 
 The client's actual upload speed will be the lesser of the value specified here and the server's maximum download speed (if set by the server).
@@ -116,11 +120,11 @@ Supported units are:
 + tbps or tb or t (terabits per second)
 ### Type
 ```
-submodule
+null or (submodule)
 ```
 ### Default
 ```nix
-{ }
+null
 ```
 ---
  
@@ -192,7 +196,11 @@ null
 The address to listen on.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -286,7 +294,11 @@ null
 Replace with a strong password of your choice.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -364,7 +376,11 @@ You also have the option to use a Hysteria 2 URI (`hysteria2://`).
 In this case, because the URI already includes the password and certain other settings, you don't (and can't) specify them separately in the configuration file.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -377,7 +393,11 @@ A SOCKS5 proxy server that can be used with any SOCKS5-compatible application.
 Supports both TCP and UDP.
 ### Type
 ```
-submodule
+null or (submodule)
+```
+### Default
+```nix
+null
 ```
 ---
  
@@ -401,7 +421,11 @@ true
 The address to listen on.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -458,7 +482,11 @@ null
 The address to listen on.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -470,7 +498,11 @@ string
 The address to forward to.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -497,7 +529,11 @@ null
 The address to listen on.
 ### Type
 ```
-unspecified value
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -522,7 +558,11 @@ null
 The address to listen on.
 ### Type
 ```
-unspecified value
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -677,11 +717,11 @@ Set to any private address that does not conflict with your LAN.
 The defaults are as shown.
 ### Type
 ```
-submodule
+null or (submodule)
 ```
 ### Default
 ```nix
-{ }
+null
 ```
 ---
  
@@ -689,7 +729,11 @@ submodule
 The IPv4 address to use.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -701,7 +745,11 @@ string
 The IPv6 address to use.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -725,7 +773,11 @@ signed integer
 The name of the TUN interface.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -738,11 +790,11 @@ Optional. Routing rules. Omitting or skipping all fields means that no routes wi
 In most cases, just having `ipv4Exclude` or `ipv6Exclude` is enough.
 ### Type
 ```
-submodule
+null or (submodule)
 ```
 ### Default
 ```nix
-{ }
+null
 ```
 ---
  
@@ -751,7 +803,11 @@ Optional. IPv4 prefix to proxy.
 If any other field is configured, the default is 0.0.0.0/0.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -765,7 +821,11 @@ Optional. IPv4 prefix to exclude.
 If you want to disable IPv4 proxying completely, you can also put `0.0.0.0/0` here.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -779,7 +839,11 @@ Due to YAML limitations, quotes are required.
 If any other field is configured, the default is ::/0.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -794,7 +858,11 @@ Due to YAML limitations, quotes are required.
 If you want to disable IPv6 proxying completely, you can also put `"::/0"` here.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -835,7 +903,11 @@ null
 The address to listen on.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -847,7 +919,11 @@ string
 The address to forward to.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -889,7 +965,11 @@ null
 The address to listen on.
 ### Type
 ```
-unspecified value
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -951,7 +1031,7 @@ Working directory of the OpenGFW service and home of `hysteria-server.user`.
 ---
  
 ## services.hysteria.server.enable
-Whether to enable Hysteria (server), a powerful, lightning fast and censorship resistant proxy.
+Whether to enable Hysteria (server, a powerful, lightning fast and censorship resistant proxy.
 .
 ### Type
 ```
@@ -1124,7 +1204,7 @@ null
 ```
 ### Example 
 ```nix
-"./geoip.dat"
+"./geosite.dat"
 ```
 ---
  
@@ -1157,15 +1237,13 @@ null or (submodule)
 ```
 ### Default
 ```nix
-''
-  (cfg.server.settings.tls != null) -> null
-''
+null
 ```
 ---
  
 ## services.hysteria.server.settings.acme.altHTTPPort
 Alternate HTTP challenge port.
-(Note: If you want to use anything other than 80, you must set up port forward/HTTP reverse proxy from 80 to that port, otherwise ACME will not be able to issue the certificate.)
+(**Note**: If you want to use anything other than 80, you must set up port forward/HTTP reverse proxy from 80 to that port, otherwise ACME will not be able to issue the certificate.)
 ### Type
 ```
 signed integer
@@ -1178,7 +1256,7 @@ signed integer
  
 ## services.hysteria.server.settings.acme.altTLSALPNPort
 Alternate TLS-ALPN challenge port.
-(Note: If you want to use anything other than 443, you must set up port forward/SNI proxy from 443 to that port, otherwise ACME will not be able to issue the certificate.)
+(**Note**: If you want to use anything other than 443, you must set up port forward/SNI proxy from 443 to that port, otherwise ACME will not be able to issue the certificate.)
 ### Type
 ```
 signed integer
@@ -1305,14 +1383,18 @@ string
 Authentication payload:
 ```json
   {
-     "addr": "123.123.123.123:44556", 
-     "auth": "something_something", 
-     "tx": 123456 
+     "addr": "123.123.123.123:44556",
+     "auth": "something_something",
+     "tx": 123456
   }
 ```
 ### Type
 ```
-submodule
+null or (submodule)
+```
+### Default
+```nix
+null
 ```
 ---
  
@@ -1321,7 +1403,7 @@ The path to the command that handles authentication.
 When using command authentication,
 the server will execute the specified command with the following arguments from the authentication payload when a client attempts to connect:
 ```
-/etc/some_command addr auth tx 
+/etc/some_command addr auth tx
 ```
 The command must print the client's unique identifier to `stdout` and return with exit code 0 if the client is allowed to connect,
 or return with a non-zero exit code if the client is rejected.
@@ -1345,8 +1427,8 @@ When using HTTP authentication, the server will send a `POST` request to the bac
 Your endpoint must respond with a JSON object with the following fields:
 ```json
 {
-  "ok": true, 
-    "id": "john_doe" 
+  "ok": true,
+    "id": "john_doe"
 }
 ```
 > NOTE: The HTTP status code must be 200 for the authentication to be considered successful.
@@ -1380,7 +1462,11 @@ true
 The URL of the backend server that handles authentication.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -1452,11 +1538,11 @@ Supported units are:
 + tbps or tb or t (terabits per second)
 ### Type
 ```
-submodule
+null or (submodule)
 ```
 ### Default
 ```nix
-{ }
+null
 ```
 ---
  
@@ -1655,7 +1741,11 @@ true
 The URL of the website to proxy.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -1679,7 +1769,11 @@ null
 The string to return.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -1750,7 +1844,11 @@ null
 Replace with a strong password of your choice.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -1834,7 +1932,11 @@ The direct outbound has a few additional options that can be used to customize i
 > You can either specify `bindIPv4` and/or `bindIPv6` without `bindDevice`, or use `bindDevice` without `bindIPv4` and `bindIPv6`.
 ### Type
 ```
-submodule
+null or (submodule)
+```
+### Default
+```nix
+null
 ```
 ---
  
@@ -1842,7 +1944,11 @@ submodule
 The local network interface to bind to.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -1854,7 +1960,11 @@ string
 The local IPv4 address to bind to.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -1866,7 +1976,11 @@ string
 The local IPv6 address to bind to.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -1911,7 +2025,11 @@ true
 The URL of the HTTP/HTTPS proxy. (Can be `http://` or `https://`)
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -1923,7 +2041,11 @@ string
 The name of the outbound. This is used in ACL rules.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -1935,7 +2057,11 @@ string
 The address of the SOCKS5 proxy.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -2255,7 +2381,11 @@ string
 Resolver type
 ### Type
 ```
-one of "tcp", "udp", "tls", "https"
+null or one of "tcp", "udp", "tls", "https"
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -2318,9 +2448,7 @@ null or (submodule)
 ```
 ### Default
 ```nix
-''
-  (cfg.server.settings.acme != null) -> null
-''
+null
 ```
 ---
  
@@ -2328,7 +2456,11 @@ null or (submodule)
 TLS certificate
 ### Type
 ```
-path
+null or path
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -2340,7 +2472,11 @@ path
 TLS private key
 ### Type
 ```
-path
+null or path
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -2367,7 +2503,11 @@ null
 The address to listen on.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
@@ -2379,7 +2519,11 @@ string
 The secret key to use for authentication. Attach this to the `Authorization` header in your HTTP requests.
 ### Type
 ```
-string
+null or string
+```
+### Default
+```nix
+null
 ```
 ### Example 
 ```nix
