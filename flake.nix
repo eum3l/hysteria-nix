@@ -59,7 +59,8 @@ rec {
               version = pkgs.lib.removePrefix "app/v" inputs.src.ref;
             };
 
-            options = options-nix.lib.${system}.mkOptionScript {
+            options = options-nix.lib.mkOptionScript {
+              inherit system;
               module = self.nixosModules.default;
               modulePrefix = "services.hysteria";
             };
