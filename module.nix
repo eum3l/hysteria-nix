@@ -1,13 +1,21 @@
 packages:
-{
-  lib,
-  config,
-  pkgs,
-  ...
+{ lib
+, config
+, pkgs
+, ...
 }:
 let
-  inherit (lib) mkOption optionals mkIf;
+  inherit (lib) optionals mkIf optionalAttrs;
   cfg = config.services.hysteria;
+  mkFormatsOption =
+    options:
+    lib.mkOption (
+      options
+      // (optionalAttrs (!(options ? default)) {
+        default = null;
+        type = lib.types.nullOr options.type;
+      })
+    );
 in
 with lib.types;
 {
@@ -28,7 +36,7 @@ with lib.types;
           in
           {
             boot.kernel.sysctl = mkIf (type == "client") (
-              lib.optionalAttrs (cfg.settings.tun != null) {
+              optionalAttrs (cfg.settings.tun != null) {
                 "net.ipv4.conf.default.rp_filter" = 2;
                 "net.ipv4.conf.all.rp_filter" = 2;
               }
@@ -38,13 +46,14 @@ with lib.types;
               let
                 getPort = address: lib.toInt (builtins.elemAt (builtins.split ":" address) 2);
               in
-              mkIf (type == "server") (
-                optionals cfg.openFirewall [ (getPort cfg.settings.listen) ]
-                ++ (optionals (cfg.settings.masquerade != null) [
-                  (getPort srvConf.masquerade.listenHTTP)
-                  (getPort cfg.settings.masquerade.listenHTTPS)
-                ])
-
+              mkIf (type == "server" && cfg.openFirewall) (
+                optionals (cfg.settings != null) (
+                  [ (getPort cfg.settings.listen) ]
+                  ++ (optionals (cfg.settings.masquerade != null) [
+                    (getPort cfg.settings.masquerade.listenHTTP)
+                    (getPort cfg.settings.masquerade.listenHTTPS)
+                  ])
+                )
               );
 
             security.wrappers."hysteria-${type}" = rec {
@@ -66,7 +75,7 @@ with lib.types;
                   --disable-update-check \
                   -f ${cfg.logFormat} \
                   -l ${cfg.logLevel} \
-                  -c config.yaml 
+                  -c config.yaml
               '';
 
               serviceConfig = {
@@ -96,15 +105,21 @@ with lib.types;
       {
         assertions =
           let
-            set = value: value == null;
+            set = value: value != null;
           in
-          [
-            (mkIf (cfg.server.settings.acl != null) {
-              assertion = (set cfg.server.settings.acl.inline) && (set cfg.server.settings.acl.file);
+          mkIf (set cfg.server.settings) [
+            (mkIf (set cfg.server.settings.acl) {
+              assertion = (!set cfg.server.settings.acl.inline) && (!set cfg.server.settings.acl.file);
               message = ''
-                You can have either `file` or `inline`, but not both. (server.settings.acl)
+                You can either set `file` or `inline`, but not both. (server.settings.acl)
               '';
             })
+            {
+              assertion = !((set cfg.server.settings.tls) && (set cfg.server.settings.acme));
+              message = ''
+                You can either set `tls` or `acme`, but not both. (server.settings)
+              '';
+            }
           ];
       }
     ];
@@ -113,20 +128,19 @@ with lib.types;
     let
       defaultOptions = type: {
         enable = lib.mkEnableOption ''
-          Hysteria (${type}), a powerful, lightning fast and censorship resistant proxy.
+          Hysteria (${type}, a powerful, lightning fast and censorship resistant proxy.
         '';
 
         package = lib.mkPackageOption packages.${pkgs.system} "hysteria" { default = "hysteria"; };
 
-        settingsFile = mkOption {
-          default = null;
-          type = nullOr path;
+        settingsFile = mkFormatsOption {
+          type = path;
           description = ''
             Path to file containing Hysteria settings.
           '';
         };
 
-        logFormat = mkOption {
+        logFormat = mkFormatsOption {
           description = ''
             Format of the logs.
           '';
@@ -138,7 +152,7 @@ with lib.types;
           ];
         };
 
-        logLevel = mkOption {
+        logLevel = mkFormatsOption {
           description = ''
             Level of the logs.
           '';
@@ -151,7 +165,8 @@ with lib.types;
             "error"
           ];
         };
-        dir = mkOption {
+
+        dir = mkFormatsOption {
           default = "/var/lib/hysteria-${type}";
           type = singleLineStr;
           description = ''
@@ -159,30 +174,30 @@ with lib.types;
           '';
         };
 
-        user = mkOption {
+        user = mkFormatsOption {
           description = "Username of the Hysteria user";
           type = str;
           default = "hysteria-${type}";
         };
       };
       defaultSettings = {
-        obfs = lib.mkOption {
+        obfs = mkFormatsOption {
           description = ''
             By default, the Hysteria protocol mimics HTTP/3.
             If your network specifically blocks QUIC or HTTP/3 traffic (but not UDP in general), obfuscation can be used to work around this.
             We currently have an obfuscation implementation called "Salamander" that converts packets into seamingly random bytes with no pattern.
             This feature requires a password that must be identical on both the client and server sides.
           '';
-          default = null;
-          type = nullOr (submodule {
+
+          type = submodule {
             options = {
-              type = mkOption {
+              type = mkFormatsOption {
                 description = "Obfuscation type";
                 default = "salamander";
                 type = enum [ "salamander" ];
               };
               salamander = {
-                password = mkOption {
+                password = mkFormatsOption {
                   example = "cry_me_a_r1ver";
                   description = ''
                     Replace with a strong password of your choice.
@@ -191,39 +206,39 @@ with lib.types;
                 };
               };
             };
-          });
+          };
         };
 
-        quic = mkOption {
+        quic = mkFormatsOption {
           description = ''
             The default stream and connection receive window sizes are 8MB and 20MB, respectively.
             **We do not recommend changing these values unless you fully understand what you are doing.**
             If you choose to change these values, we recommend keeping the ratio of stream receive window to connection receive window at 2:5.
           '';
-          default = null;
-          type = nullOr (submodule {
+
+          type = submodule {
             options = {
-              initStreamReceiveWindow = mkOption {
+              initStreamReceiveWindow = mkFormatsOption {
                 description = "The initial QUIC stream receive window size.";
                 default = 8388608;
                 type = int;
               };
-              maxStreamReceiveWindow = mkOption {
+              maxStreamReceiveWindow = mkFormatsOption {
                 description = "The maximum QUIC stream receive window size.";
                 default = 8388608;
                 type = int;
               };
-              initConnReceiveWindow = mkOption {
+              initConnReceiveWindow = mkFormatsOption {
                 description = "The initial QUIC connection receive window size.";
                 default = 20971520;
                 type = int;
               };
-              maxConnReceiveWindow = mkOption {
+              maxConnReceiveWindow = mkFormatsOption {
                 description = "The maximum QUIC connection receive window size.";
                 default = 20971520;
                 type = int;
               };
-              maxIdleTimeout = mkOption {
+              maxIdleTimeout = mkFormatsOption {
                 description = ''
                   The maximum idle timeout.
                   How long the server will consider the client still connected without any activity.
@@ -232,26 +247,26 @@ with lib.types;
                 example = "60s";
                 type = str;
               };
-              maxIncomingStreams = mkOption {
+              maxIncomingStreams = mkFormatsOption {
                 description = "The maximum number of concurrent incoming streams.";
                 default = 1024;
                 example = 2048;
                 type = int;
               };
-              disablePathMTUDiscovery = mkOption {
+              disablePathMTUDiscovery = mkFormatsOption {
                 description = "Disable QUIC path MTU discovery.";
                 default = false;
                 example = true;
                 type = bool;
               };
             };
-          });
+          };
         };
       };
     in
     {
       server = (defaultOptions "server") // {
-        openFirewall = mkOption {
+        openFirewall = mkFormatsOption {
           description = ''
             Open the firewall for the Hysteria server.
           '';
@@ -260,12 +275,11 @@ with lib.types;
           type = bool;
         };
 
-        settings = mkOption {
+        settings = mkFormatsOption {
           description = "Hysteria server settings";
-          default = null;
-          type = nullOr (submodule {
+          type = submodule {
             options = defaultSettings // {
-              listen = mkOption {
+              listen = mkFormatsOption {
                 default = ":443";
                 type = str;
                 description = ''
@@ -276,40 +290,33 @@ with lib.types;
                 '';
               };
 
-              tls = mkOption {
+              tls = mkFormatsOption {
                 description = ''
                   Certificates are read on every TLS handshake.
                   This means you can update the files without restarting the server.
                 '';
-                defaultText = ''
-                  (cfg.server.settings.acme != null) -> null
-                '';
-                default = if (cfg.server.settings.acme != null) then null else { };
-                type = nullOr (submodule {
+
+                type = submodule {
                   options = {
-                    cert = mkOption {
+                    cert = mkFormatsOption {
                       example = "./some.crt";
                       description = "TLS certificate";
                       type = path;
                     };
-                    key = mkOption {
+                    key = mkFormatsOption {
                       example = "./some.key";
                       description = "TLS private key";
                       type = path;
                     };
                   };
-                });
+                };
               };
 
-              acme = mkOption {
+              acme = mkFormatsOption {
                 description = "ACME configuration.";
-                defaultText = ''
-                  (cfg.server.settings.tls != null) -> null
-                '';
-                default = if (cfg.server.settings.tls != null) then null else { };
-                type = nullOr (submodule {
+                type = submodule {
                   options = {
-                    domains = mkOption {
+                    domains = mkFormatsOption {
                       example = [
                         "domain1.com"
                         "domain2.org"
@@ -318,13 +325,13 @@ with lib.types;
                       description = "Your domains";
                       type = listOf str;
                     };
-                    email = mkOption {
+                    email = mkFormatsOption {
                       example = "your@email.net";
                       default = config.security.acme.defaults.email;
                       description = "Your email address";
                       type = str;
                     };
-                    ca = mkOption {
+                    ca = mkFormatsOption {
                       default = "letsencrypt";
                       example = "zerossl";
                       description = ''
@@ -335,40 +342,40 @@ with lib.types;
                         "zerossl"
                       ];
                     };
-                    disableHTTP = mkOption {
+                    disableHTTP = mkFormatsOption {
                       default = false;
                       example = true;
                       description = "Disable HTTP challenge.";
                       type = bool;
                     };
-                    disableTLSALPN = mkOption {
+                    disableTLSALPN = mkFormatsOption {
                       default = false;
                       example = true;
                       description = "Disable TLS-ALPN challenge.";
                       type = bool;
                     };
-                    altHTTPPort = mkOption {
+                    altHTTPPort = mkFormatsOption {
                       default = 80;
                       description = ''
                         Alternate HTTP challenge port.
-                        (Note: If you want to use anything other than 80, you must set up port forward/HTTP reverse proxy from 80 to that port, otherwise ACME will not be able to issue the certificate.)
+                        (**Note**: If you want to use anything other than 80, you must set up port forward/HTTP reverse proxy from 80 to that port, otherwise ACME will not be able to issue the certificate.)
                       '';
                       type = int;
                     };
-                    altTLSALPNPort = mkOption {
+                    altTLSALPNPort = mkFormatsOption {
                       default = 443;
                       description = ''
                         Alternate TLS-ALPN challenge port.
-                        (Note: If you want to use anything other than 443, you must set up port forward/SNI proxy from 443 to that port, otherwise ACME will not be able to issue the certificate.)
+                        (**Note**: If you want to use anything other than 443, you must set up port forward/SNI proxy from 443 to that port, otherwise ACME will not be able to issue the certificate.)
                       '';
                       type = int;
                     };
-                    dir = mkOption {
+                    dir = mkFormatsOption {
                       default = "acme";
                       description = "The directory to store the ACME account key and certificates.";
                       type = str;
                     };
-                    listenHost = mkOption {
+                    listenHost = mkFormatsOption {
                       default = "0.0.0.0";
                       example = "192.168.5.150";
                       description = ''
@@ -378,10 +385,10 @@ with lib.types;
                       type = str;
                     };
                   };
-                });
+                };
               };
 
-              bandwidth = mkOption {
+              bandwidth = mkFormatsOption {
                 description = ''
                   The bandwidth values on the server side act as speed limits, limiting the maximum rate at which the server will send and receive data (per client).
                   **Note that the server's upload speed is the client's download speed, and vice versa.**
@@ -393,16 +400,16 @@ with lib.types;
                   + gbps or gb or g (gigabits per second)
                   + tbps or tb or t (terabits per second)
                 '';
-                default = { };
+
                 type = submodule {
                   options = {
-                    up = mkOption {
+                    up = mkFormatsOption {
                       description = "The server's upload bandwidth.";
                       default = "1 gbps";
                       example = "0";
                       type = str;
                     };
-                    down = mkOption {
+                    down = mkFormatsOption {
                       description = "The server's download bandwidth.";
                       default = "1 gbps";
                       example = "0";
@@ -412,7 +419,7 @@ with lib.types;
                 };
               };
 
-              ignoreClientBandwidth = mkOption {
+              ignoreClientBandwidth = mkFormatsOption {
                 description = ''
                   `ignoreClientBandwidth` is a special option that, when enabled, makes the server to disregard any bandwidth hints set by clients,
                   opting to use a more traditional congestion control algorithm (currently BBR) instead.
@@ -426,7 +433,7 @@ with lib.types;
                 type = bool;
               };
 
-              speedTest = mkOption {
+              speedTest = mkFormatsOption {
                 description = ''
                   `speedTest` enables the built-in speed test server.
                   When enabled, clients can test their download and upload speeds with the server.
@@ -437,7 +444,7 @@ with lib.types;
                 type = bool;
               };
 
-              disableUDP = mkOption {
+              disableUDP = mkFormatsOption {
                 description = ''
                   `disableUDP` disables UDP forwarding, only allowing TCP connections.
                 '';
@@ -446,7 +453,7 @@ with lib.types;
                 type = bool;
               };
 
-              udpIdleTimeout = mkOption {
+              udpIdleTimeout = mkFormatsOption {
                 description = ''
                   `udpIdleTimeout` specifies the amount of time the server will keep a local UDP port open for each UDP session that has no activity.
                   This is conceptually similar to the NAT UDP session timeout.
@@ -456,20 +463,20 @@ with lib.types;
                 type = str;
               };
 
-              auth = mkOption {
+              auth = mkFormatsOption {
                 description = ''
                   Authentication payload:
                   ```json
                     {
-                       "addr": "123.123.123.123:44556", 
-                       "auth": "something_something", 
-                       "tx": 123456 
+                       "addr": "123.123.123.123:44556",
+                       "auth": "something_something",
+                       "tx": 123456
                     }
                   ```
                 '';
                 type = submodule {
                   options = {
-                    type = mkOption {
+                    type = mkFormatsOption {
                       description = "Authentication type.";
                       default = "password";
                       example = "userpass";
@@ -480,45 +487,45 @@ with lib.types;
                         "command"
                       ];
                     };
-                    password = mkOption {
+                    password = mkFormatsOption {
                       description = "Replace with a strong password of your choice.";
                       example = "your_password";
-                      default = null;
-                      type = nullOr str;
+
+                      type = str;
                     };
-                    userpass = mkOption {
+                    userpass = mkFormatsOption {
                       description = "A map of username-password pairs.";
                       example = {
                         user1 = "pass1";
                         user2 = "pass2";
                         user3 = "pass3";
                       };
-                      default = null;
-                      type = nullOr (attrsOf str);
+
+                      type = attrsOf str;
                     };
-                    http = mkOption {
+                    http = mkFormatsOption {
                       description = ''
                         When using HTTP authentication, the server will send a `POST` request to the backend server with the authentication payload when a client attempts to connect.
                         Your endpoint must respond with a JSON object with the following fields:
                         ```json
                         {
-                          "ok": true, 
-                            "id": "john_doe" 
+                          "ok": true,
+                            "id": "john_doe"
                         }
                         ```
                         > NOTE: The HTTP status code must be 200 for the authentication to be considered successful.
                       '';
-                      default = null;
-                      type = nullOr (submodule {
+
+                      type = submodule {
                         options = {
-                          url = mkOption {
+                          url = mkFormatsOption {
                             description = ''
                               The URL of the backend server that handles authentication.
                             '';
                             example = "http://your.backend.com/auth";
                             type = str;
                           };
-                          insecure = mkOption {
+                          insecure = mkFormatsOption {
                             description = ''
                               Disable TLS verification for the backend server (only applies to HTTPS URLs).
                             '';
@@ -527,35 +534,34 @@ with lib.types;
                             type = bool;
                           };
                         };
-                      });
+                      };
                     };
-                    command = mkOption {
+                    command = mkFormatsOption {
                       description = ''
                         The path to the command that handles authentication.
                         When using command authentication,
                         the server will execute the specified command with the following arguments from the authentication payload when a client attempts to connect:
                         ```
-                        /etc/some_command addr auth tx 
+                        /etc/some_command addr auth tx
                         ```
                         The command must print the client's unique identifier to `stdout` and return with exit code 0 if the client is allowed to connect,
                         or return with a non-zero exit code if the client is rejected.
                         If the command fails to execute, the client will be rejected.
                       '';
                       example = "/etc/some_command";
-                      default = null;
-                      type = nullOr str;
+
+                      type = str;
                     };
                   };
                 };
               };
 
-              resolver = mkOption {
-                default = null;
+              resolver = mkFormatsOption {
                 description = ''
                   You can specify what **resolver** (DNS server) to use to resolve domain names in client requests.
                   If omitted, Hysteria will use the system's default **resolver**.
                 '';
-                type = nullOr (submodule {
+                type = submodule {
                   options =
                     let
                       timeoutDescription = "The timeout for DNS queries.";
@@ -563,7 +569,7 @@ with lib.types;
                       insecureDescription = "Disable TLS verification for the TLS resolver.";
                     in
                     {
-                      type = mkOption {
+                      type = mkFormatsOption {
                         description = "Resolver type";
                         example = "tls";
                         type = enum [
@@ -574,12 +580,12 @@ with lib.types;
                         ];
                       };
                       tcp = {
-                        addr = mkOption {
+                        addr = mkFormatsOption {
                           description = "The address of the TCP resolver.";
                           default = "8.8.8.8:53";
                           type = str;
                         };
-                        timeout = mkOption {
+                        timeout = mkFormatsOption {
                           description = timeoutDescription;
                           default = "4s";
                           example = "8s";
@@ -587,12 +593,12 @@ with lib.types;
                         };
                       };
                       udp = {
-                        addr = mkOption {
+                        addr = mkFormatsOption {
                           description = "The address of the UDP resolver.";
                           default = "8.8.4.4:53";
                           type = str;
                         };
-                        timeout = mkOption {
+                        timeout = mkFormatsOption {
                           description = timeoutDescription;
                           default = "4s";
                           example = "8s";
@@ -600,22 +606,22 @@ with lib.types;
                         };
                       };
                       tls = {
-                        addr = mkOption {
+                        addr = mkFormatsOption {
                           description = "The address of the TLS resolver.";
                           default = "1.1.1.1:853";
                           type = str;
                         };
-                        timeout = mkOption {
+                        timeout = mkFormatsOption {
                           description = timeoutDescription;
                           default = "10s";
                           type = str;
                         };
-                        sni = mkOption {
+                        sni = mkFormatsOption {
                           default = "cloudflare-dns.com";
                           description = sniDescription;
                           type = str;
                         };
-                        insecure = mkOption {
+                        insecure = mkFormatsOption {
                           description = insecureDescription;
                           default = false;
                           example = true;
@@ -623,23 +629,23 @@ with lib.types;
                         };
                       };
                       https = {
-                        addr = mkOption {
+                        addr = mkFormatsOption {
                           description = "The address of the HTTPS resolver.";
                           default = "1.1.1.1:443";
                           type = str;
                         };
-                        timeout = mkOption {
+                        timeout = mkFormatsOption {
                           description = timeoutDescription;
                           default = "10s";
                           example = "5s";
                           type = str;
                         };
-                        sni = mkOption {
+                        sni = mkFormatsOption {
                           description = sniDescription;
                           default = "cloudflare-dns.com";
                           type = str;
                         };
-                        insecure = mkOption {
+                        insecure = mkFormatsOption {
                           description = insecureDescription;
                           default = false;
                           example = true;
@@ -647,10 +653,10 @@ with lib.types;
                         };
                       };
                     };
-                });
+                };
               };
 
-              acl = mkOption {
+              acl = mkFormatsOption {
                 description = ''
                   ACL, often used in combination with outbounds, is a very powerful feature of the Hysteria server that allows you to customize the way client's requests are handled.
                   For example, you can use ACL to block certain addresses, or to use different outbounds for different websites.
@@ -661,45 +667,45 @@ with lib.types;
                   > If you don't need any customization, you can omit the `geoip` or `geosite` fields and let Hysteria automatically download the latest version [Loyalsoldier/v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat) to your working directory.
                   > The files will only be downloaded and used if your ACL has at least one rule that uses this feature.
                 '';
-                default = null;
-                type = nullOr (submodule {
+
+                type = submodule {
                   options = {
-                    file = mkOption {
+                    file = mkFormatsOption {
                       description = "The path to the ACL file.";
                       example = "./some.txt";
-                      default = null;
-                      type = nullOr path;
+
+                      type = path;
                     };
-                    inline = mkOption {
+                    inline = mkFormatsOption {
                       description = "The list of inline ACL rules. [ACL documentation](https://v2.hysteria.network/docs/advanced/ACL/)]";
-                      default = null;
+
                       example = [
                         "reject(suffix:v2ex.com)"
                         "reject(all, udp/443)"
                         "reject(geoip:cn)"
                         "reject(geosite:netflix)"
                       ];
-                      type = nullOr (listOf str);
+                      type = listOf str;
                     };
-                    geoip = mkOption {
+                    geoip = mkFormatsOption {
                       description = ''
                         Optional. The path to the GeoIP database file.
                         If this field is omitted, Hysteria will automatically download the latest database to your working directory.
                       '';
                       example = "./geoip.dat";
-                      default = null;
-                      type = nullOr path;
+
+                      type = path;
                     };
-                    geosite = mkOption {
+                    geosite = mkFormatsOption {
                       description = ''
                         Optional. The path to the GeoSite database file.
                         If this field is omitted, Hysteria will automatically download the latest database to your working directory.
                       '';
-                      example = "./geoip.dat";
-                      default = null;
-                      type = nullOr path;
+                      example = "./geosite.dat";
+
+                      type = path;
                     };
-                    geoUpdateInterval = mkOption {
+                    geoUpdateInterval = mkFormatsOption {
                       description = ''
                         Optional. The interval at which to refresh the GeoIP/GeoSite databases.
                         168 hours (1 week) by default. Only applies if the GeoIP/GeoSite databases are automatically downloaded.
@@ -712,9 +718,9 @@ with lib.types;
                       type = str;
                     };
                   };
-                });
+                };
               };
-              outbounds = mkOption {
+              outbounds = mkFormatsOption {
                 description = ''
                   Outbounds are used to define the "exit" through which a connection should be routed.
                   For example, when [combined with ACL](https://v2.hysteria.network/docs/advanced/ACL/),
@@ -728,7 +734,7 @@ with lib.types;
 
                   **If you do not use ACL, all connections will always be routed through the first ("default") outbound in the list, and all other outbounds will be ignored.**
                 '';
-                default = null;
+
                 example = [
                   {
                     name = "my_outbound_1";
@@ -763,133 +769,131 @@ with lib.types;
                   }
                 ];
 
-                type = nullOr (
-                  listOf (submodule {
-                    options = {
-                      name = mkOption {
-                        description = "The name of the outbound. This is used in ACL rules.";
-                        example = "my_outbound_1";
+                type = listOf (submodule {
+                  options = {
+                    name = mkFormatsOption {
+                      description = "The name of the outbound. This is used in ACL rules.";
+                      example = "my_outbound_1";
+                      type = str;
+                    };
+                    type = mkFormatsOption {
+                      description = "Type of outbound";
+                      default = "direct";
+                      example = "socks5";
+                      type = enum [
+                        "direct"
+                        "socks5"
+                        "http"
+                      ];
+                    };
+                    socks5 = {
+                      addr = mkFormatsOption {
+                        description = "The address of the SOCKS5 proxy.";
+                        example = "shady.proxy.ru:1080";
                         type = str;
                       };
-                      type = mkOption {
-                        description = "Type of outbound";
-                        default = "direct";
-                        example = "socks5";
-                        type = enum [
-                          "direct"
-                          "socks5"
-                          "http"
-                        ];
+                      username = mkFormatsOption {
+                        description = "Optional. The username for the SOCKS5 proxy, if authentication is required.";
+                        example = "hackerman";
+
+                        type = str;
                       };
-                      socks5 = {
-                        addr = mkOption {
-                          description = "The address of the SOCKS5 proxy.";
-                          example = "shady.proxy.ru:1080";
-                          type = str;
-                        };
-                        username = mkOption {
-                          description = "Optional. The username for the SOCKS5 proxy, if authentication is required.";
-                          example = "hackerman";
-                          default = null;
-                          type = nullOr str;
-                        };
-                        password = mkOption {
-                          description = "Optional. The password for the SOCKS5 proxy, if authentication is required.";
-                          example = "Elliot Alderson";
-                          default = null;
-                          type = nullOr str;
-                        };
+                      password = mkFormatsOption {
+                        description = "Optional. The password for the SOCKS5 proxy, if authentication is required.";
+                        example = "Elliot Alderson";
+
+                        type = str;
                       };
-                      http = {
-                        url = mkOption {
-                          description = "The URL of the HTTP/HTTPS proxy. (Can be `http://` or `https://`)";
-                          example = "http://username:password@sketchy-proxy.cc:8081";
-                          type = str;
-                        };
-                        insecure = mkOption {
-                          description = "Optional. Whether to disable TLS verification. Applies to HTTPS proxies only.";
-                          default = false;
-                          example = true;
-                          type = bool;
-                        };
+                    };
+                    http = {
+                      url = mkFormatsOption {
+                        description = "The URL of the HTTP/HTTPS proxy. (Can be `http://` or `https://`)";
+                        example = "http://username:password@sketchy-proxy.cc:8081";
+                        type = str;
                       };
-                      direct = mkOption {
-                        description = ''
-                          The direct outbound has a few additional options that can be used to customize its behavior:
-                          > NOTE: The options `bindIPv4`, `bindIPv6`, and `bindDevice` are mutually exclusive.
-                          > You can either specify `bindIPv4` and/or `bindIPv6` without `bindDevice`, or use `bindDevice` without `bindIPv4` and `bindIPv6`.
-                        '';
-                        type = submodule {
-                          options = {
-                            mode = mkOption {
-                              description = ''
-                                The available mode values are:
-                                + `auto`: Default. Dual-stack "happy eyeballs" mode. The client will attempt to connect to the destination using both IPv4 and IPv6 addresses (if available), and use the first one that succeeds.
-                                + `64`: Always use IPv6 if available, otherwise use IPv4.
-                                + `46`: Always use IPv4 if available, otherwise use IPv6.
-                                + `6`: Always use IPv6. Fail if no IPv6 address is available.
-                                + `4`: Always use IPv4. Fail if no IPv4 address is available.
-                              '';
-                              default = "auto";
-                              type = enum [
-                                "auto"
-                                "64"
-                                "46"
-                                "6"
-                                "4"
-                              ];
-                            };
-                            bindIPv4 = mkOption {
-                              example = "2.4.6.8";
-                              description = "The local IPv4 address to bind to.
+                      insecure = mkFormatsOption {
+                        description = "Optional. Whether to disable TLS verification. Applies to HTTPS proxies only.";
+                        default = false;
+                        example = true;
+                        type = bool;
+                      };
+                    };
+                    direct = mkFormatsOption {
+                      description = ''
+                        The direct outbound has a few additional options that can be used to customize its behavior:
+                        > NOTE: The options `bindIPv4`, `bindIPv6`, and `bindDevice` are mutually exclusive.
+                        > You can either specify `bindIPv4` and/or `bindIPv6` without `bindDevice`, or use `bindDevice` without `bindIPv4` and `bindIPv6`.
+                      '';
+                      type = submodule {
+                        options = {
+                          mode = mkFormatsOption {
+                            description = ''
+                              The available mode values are:
+                              + `auto`: Default. Dual-stack "happy eyeballs" mode. The client will attempt to connect to the destination using both IPv4 and IPv6 addresses (if available), and use the first one that succeeds.
+                              + `64`: Always use IPv6 if available, otherwise use IPv4.
+                              + `46`: Always use IPv4 if available, otherwise use IPv6.
+                              + `6`: Always use IPv6. Fail if no IPv6 address is available.
+                              + `4`: Always use IPv4. Fail if no IPv4 address is available.
+                            '';
+                            default = "auto";
+                            type = enum [
+                              "auto"
+                              "64"
+                              "46"
+                              "6"
+                              "4"
+                            ];
+                          };
+                          bindIPv4 = mkFormatsOption {
+                            example = "2.4.6.8";
+                            description = "The local IPv4 address to bind to.
 ";
-                              type = str;
-                            };
-                            bindIPv6 = mkOption {
-                              example = "0:0:0:0:0:ffff:0204:0608";
-                              description = "The local IPv6 address to bind to.
+                            type = str;
+                          };
+                          bindIPv6 = mkFormatsOption {
+                            example = "0:0:0:0:0:ffff:0204:0608";
+                            description = "The local IPv6 address to bind to.
 ";
-                              type = str;
-                            };
-                            bindDevice = mkOption {
-                              example = "eth233";
-                              description = "The local network interface to bind to.
+                            type = str;
+                          };
+                          bindDevice = mkFormatsOption {
+                            example = "eth233";
+                            description = "The local network interface to bind to.
 ";
-                              type = str;
-                            };
+                            type = str;
                           };
                         };
                       };
                     };
-                  })
-                );
+                  };
+                });
               };
 
-              trafficStats = mkOption {
+              trafficStats = mkFormatsOption {
                 description = ''
                   The Traffic Stats API allows you to query the server's traffic statistics and kick clients using an HTTP API.
                   For endpoints and usage, please refer to the [Traffic Stats API documentation](https://v2.hysteria.network/docs/advanced/Traffic-Stats-API/).
                   > NOTE: If you don't set a secret, anyone with access to your API listening address will be able to see traffic stats and kick users.
                   > We strongly recommend setting a secret, or at least using ACL to block users from accessing the API.
                 '';
-                default = null;
-                type = nullOr (submodule {
+
+                type = submodule {
                   options = {
-                    listen = mkOption {
+                    listen = mkFormatsOption {
                       description = "The address to listen on.";
                       example = ":9999";
                       type = str;
                     };
-                    secret = mkOption {
+                    secret = mkFormatsOption {
                       description = "The secret key to use for authentication. Attach this to the `Authorization` header in your HTTP requests.";
                       example = "some_secret";
                       type = str;
                     };
                   };
-                });
+                };
               };
 
-              masquerade = mkOption {
+              masquerade = mkFormatsOption {
                 description = ''
                   One of the keys to Hysteria's censorship resistance is its ability to masquerade as standard HTTP/3 traffic.
                   This means that not only do the packets appear as HTTP/3 to middleboxes, but the server also responds to HTTP requests like a regular web server.
@@ -902,10 +906,10 @@ with lib.types;
 
                   [HTTP/HTTPS Masquerading documentation](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#httphttps-masquerading)
                 '';
-                default = null;
-                type = nullOr (submodule {
+
+                type = submodule {
                   options = {
-                    type = mkOption {
+                    type = mkFormatsOption {
                       description = "Masquerade type";
                       example = "string";
                       default = "proxy";
@@ -915,25 +919,24 @@ with lib.types;
                         "string"
                       ];
                     };
-                    file.dir = mkOption {
+                    file.dir = mkFormatsOption {
                       description = "The directory to serve files from.";
                       example = "/www/masq";
-                      type = nullOr path;
-                      default = null;
+                      type = path;
                     };
-                    proxy = mkOption {
+                    proxy = mkFormatsOption {
                       description = ''
                         Use a proxy for masquerading.
                       '';
-                      default = null;
-                      type = nullOr (submodule {
+
+                      type = submodule {
                         options = {
-                          url = mkOption {
+                          url = mkFormatsOption {
                             description = "The URL of the website to proxy.";
                             example = "https://some.site.net";
                             type = str;
                           };
-                          rewriteHost = mkOption {
+                          rewriteHost = mkFormatsOption {
                             description = ''
                               Whether to rewrite the Host header to match the proxied website.
                               This is required if the target web server uses Host to determine which site to serve.
@@ -943,45 +946,45 @@ with lib.types;
                             type = bool;
                           };
                         };
-                      });
+                      };
                     };
-                    string = mkOption {
+                    string = mkFormatsOption {
                       description = ''
-                        Use a string for masquerading.            
+                        Use a string for masquerading.
                       '';
-                      default = null;
-                      type = nullOr (submodule {
+
+                      type = submodule {
                         options = {
-                          content = mkOption {
+                          content = mkFormatsOption {
                             description = "The string to return.";
                             example = "hello stupid world";
                             type = str;
                           };
-                          headers = mkOption {
+                          headers = mkFormatsOption {
                             description = "Optional. The headers to return.";
-                            default = null;
-                            type = nullOr (attrsOf str);
+
+                            type = attrsOf str;
                           };
-                          statusCode = mkOption {
+                          statusCode = mkFormatsOption {
                             description = "Optional. The status code to return.";
                             default = 200;
                             example = 404;
                             type = int;
                           };
                         };
-                      });
+                      };
                     };
-                    listenHTTP = mkOption {
+                    listenHTTP = mkFormatsOption {
                       description = "HTTP (TCP) listen address.";
                       default = ":80";
                       type = str;
                     };
-                    listenHTTPS = mkOption {
+                    listenHTTPS = mkFormatsOption {
                       description = "HTTPS (TCP) listen address.";
                       default = ":443";
                       type = str;
                     };
-                    forceHTTPS = mkOption {
+                    forceHTTPS = mkFormatsOption {
                       description = ''
                         Whether to force HTTPS.
                         If enabled, all HTTP requests will be redirected to HTTPS.
@@ -991,19 +994,18 @@ with lib.types;
                       type = bool;
                     };
                   };
-                });
+                };
               };
             };
-          });
+          };
         };
       };
       client = (defaultOptions "client") // {
-        settings = mkOption {
+        settings = mkFormatsOption {
           description = "Hysteria client settings";
-          default = null;
-          type = nullOr (submodule {
+          type = submodule {
             options = defaultSettings // {
-              server = mkOption {
+              server = mkFormatsOption {
                 description = ''
                   The server field specifies the address of the Hysteria server that the client should connect to.
                   The address can be formatted as either `host:port` or just `host`. If the port is omitted, it defaults to 443.
@@ -1013,66 +1015,66 @@ with lib.types;
                 type = str;
                 example = "example.com";
               };
-              auth = mkOption {
+              auth = mkFormatsOption {
                 description = "If the server uses the `userpass` authentication, the format must be `username:password`.";
                 type = str;
                 example = "some_password";
               };
-              tls = mkOption {
+              tls = mkFormatsOption {
                 description = "TLS client settings";
-                default = null;
-                type = nullOr (submodule {
+
+                type = submodule {
                   options = {
-                    sni = mkOption {
+                    sni = mkFormatsOption {
                       description = ''
                         Server name to use for TLS verification.
                         If omitted, the server name will be extracted from the `server` field.
                       '';
-                      type = nullOr str;
-                      default = null;
+                      type = str;
+
                       example = "another.example.com";
                     };
-                    insecure = mkOption {
+                    insecure = mkFormatsOption {
                       description = "Disable TLS verification.";
                       type = bool;
                       default = false;
                       example = true;
                     };
-                    pinSHA256 = mkOption {
+                    pinSHA256 = mkFormatsOption {
                       description = ''
                         Verify the server's certificate fingerprint.
                         You can obtain the fingerprint of your certificate using openssl:
                         `openssl x509 -noout -fingerprint -sha256 -in your_cert.crt`
                       '';
-                      type = nullOr str;
-                      default = null;
+                      type = str;
+
                       example = "BA:88:45:17:A1...";
                     };
-                    ca = mkOption {
+                    ca = mkFormatsOption {
                       description = "Use a custom CA certificate for TLS verification.";
-                      type = nullOr path;
-                      default = null;
+                      type = path;
+
                       example = "custom_ca.crt";
                     };
                   };
-                });
+                };
               };
-              transport = mkOption {
+              transport = mkFormatsOption {
                 description = ''
                   The `transport` section is for customizing the underlying protocol used by the QUIC connection.
                   Currently the only type available is `udp`, but we reserve it for possible future expansions.
                 '';
-                default = null;
-                type = nullOr (submodule {
+
+                type = submodule {
                   options = {
                     options = {
-                      type = mkOption {
+                      type = mkFormatsOption {
                         description = "Transport type selection";
                         type = enum [ "udp" ];
                         default = "udp";
                       };
                       udp = {
-                        hopInterval = mkOption {
+                        hopInterval = mkFormatsOption {
                           description = ''
                             The port hopping interval.
                             This is only relevant if you're using a port hopping address.
@@ -1085,22 +1087,22 @@ with lib.types;
                       };
                     };
                   };
-                });
+                };
               };
               quic.sockopts = {
-                bindInterface = mkOption {
+                bindInterface = mkFormatsOption {
                   description = "Forces QUIC packets to be sent through this interface.";
-                  type = nullOr str;
-                  default = null;
+                  type = str;
+
                   example = "eth0";
                 };
-                fwmark = mkOption {
+                fwmark = mkFormatsOption {
                   description = "The `SO_MARK` tag to be added to QUIC packets.";
-                  default = null;
+
                   example = 1234;
-                  type = nullOr int;
+                  type = int;
                 };
-                fdControlUnixSocket = mkOption {
+                fdControlUnixSocket = mkFormatsOption {
                   description = ''
                     Path to a Unix Socket that is listened to by other processes.
                     The Hysteria client will send the file descriptor (FD) used for the QUIC connection as ancillary information to this Unix Socket,
@@ -1108,18 +1110,18 @@ with lib.types;
                     This option can be used in Android client development; please refer to the [FD Control Protocol](https://v2.hysteria.network/docs/advanced/FD-Control/) for more details.
                   '';
                   example = "./test.sock";
-                  default = null;
-                  type = nullOr str;
+
+                  type = str;
                 };
               };
-              bandwidth = mkOption {
+              bandwidth = mkFormatsOption {
                 description = ''
                   Hysteria has two built-in congestion control algorithms (BBR & Brutal).
                   Which one to use depends on whether bandwidth information is provided.
                   If you want to use BBR instead of Brutal, you can delete the entire bandwidth section.
                   For more details, see [Bandwidth negotiation process](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#bandwidth-negotiation-process) and [Congestion control details](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#congestion-control-details).
 
-                  > ⚠️ Warning Higher bandwidth values are not always better; be very careful not to exceed the maximum bandwidth that your current network can support.
+                  > ⚠️ **Warning** Higher bandwidth values are not always better; be very careful not to exceed the maximum bandwidth that your current network can support.
                   > Doing so will backfire, causing network congestion and unstable connections.
 
                   The client's actual upload speed will be the lesser of the value specified here and the server's maximum download speed (if set by the server).
@@ -1132,16 +1134,15 @@ with lib.types;
                   + gbps or gb or g (gigabits per second)
                   + tbps or tb or t (terabits per second)
                 '';
-                default = { };
                 type = submodule {
                   options = {
-                    up = mkOption {
+                    up = mkFormatsOption {
                       description = "The client's upload bandwidth.";
                       default = "100 mbps";
                       example = "50 mbps";
                       type = str;
                     };
-                    down = mkOption {
+                    down = mkFormatsOption {
                       description = "The client's download bandwidth.";
                       default = "200 mbps";
                       example = "500 mbps";
@@ -1150,7 +1151,7 @@ with lib.types;
                   };
                 };
               };
-              fastOpen = mkOption {
+              fastOpen = mkFormatsOption {
                 description = ''
                   Fast Open can shave one roundtrip time (RTT) off each connection,
                   but at the cost of the correct semantics of SOCKS5/HTTP proxy protocols.
@@ -1161,7 +1162,7 @@ with lib.types;
                 example = true;
                 type = bool;
               };
-              lazy = mkOption {
+              lazy = mkFormatsOption {
                 description = ''
                   When enabled, the client is "lazy" in the sense that it will only attempt to connect to the server if there is an incoming connection from one of the enabled client modes.
                   This differs from the default behavior, where the client attempts to connect to the server as soon as it starts up.
@@ -1172,31 +1173,31 @@ with lib.types;
                 example = true;
                 type = bool;
               };
-              socks5 = mkOption {
+              socks5 = mkFormatsOption {
                 description = ''
                   A SOCKS5 proxy server that can be used with any SOCKS5-compatible application.
                   Supports both TCP and UDP.
                 '';
                 type = submodule {
                   options = {
-                    listen = mkOption {
+                    listen = mkFormatsOption {
                       description = "The address to listen on.";
                       example = "127.0.0.1:1080";
                       type = str;
                     };
-                    username = mkOption {
+                    username = mkFormatsOption {
                       description = "Optional. The username to require for authentication.";
                       example = "user";
-                      default = null;
-                      type = nullOr str;
+
+                      type = str;
                     };
-                    password = mkOption {
+                    password = mkFormatsOption {
                       description = "Optional. The password to require for authentication.";
                       example = "pass";
-                      default = null;
-                      type = nullOr str;
+
+                      type = str;
                     };
-                    disableUDP = mkOption {
+                    disableUDP = mkFormatsOption {
                       description = "Optional. Disable UDP support.";
                       default = false;
                       example = true;
@@ -1205,123 +1206,80 @@ with lib.types;
                   };
                 };
               };
-              http = mkOption {
+              http = mkFormatsOption {
                 description = ''
                   An HTTP proxy server that can be used with any HTTP proxy-compatible application.
                   Supports both plaintext HTTP and HTTPS (CONNECT).
                 '';
-                default = null;
-                type = nullOr (submodule {
+
+                type = submodule {
                   options = {
-                    listen = mkOption {
+                    listen = mkFormatsOption {
                       description = "The address to listen on.";
                       example = "127.0.0.1:8080";
                       type = str;
                     };
-                    username = mkOption {
+                    username = mkFormatsOption {
                       description = "Optional. The username to require for authentication.";
                       example = "king";
-                      default = null;
-                      type = nullOr str;
+
+                      type = str;
                     };
-                    password = mkOption {
+                    password = mkFormatsOption {
                       description = "Optional. The password to require for authentication.";
                       example = "kong";
-                      default = null;
-                      type = nullOr str;
+
+                      type = str;
                     };
-                    realm = mkOption {
+                    realm = mkFormatsOption {
                       description = "Optional. The realm to require for authentication.";
                       example = "martian";
-                      default = null;
-                      type = nullOr str;
+
+                      type = str;
                     };
                   };
-                });
+                };
               };
-              tcpForwarding = mkOption {
+              tcpForwarding = mkFormatsOption {
                 description = ''
                   TCP Forwarding allows you to forward one or more TCP ports from the server (or any remote host) to the client.
                   This is useful, for example, if you want to access a service that is only available on the server's network.
                 '';
-                default = null;
-                type = nullOr (
-                  listOf (submodule {
-                    options = {
-                      listen = mkOption {
-                        description = "The address to listen on.";
-                        example = "127.0.0.1:6600";
-                        type = str;
-                      };
-                      remote = mkOption {
-                        description = "The address to forward to.";
-                        example = "other.machine.internal:6601";
-                        type = str;
-                      };
-                    };
-                  })
-                );
-              };
-              udpForwarding = mkOption {
-                description = ''
-                  UDP Forwarding allows you to forward one or more UDP ports from the server (or any remote host) to the client.
-                  This is useful, for example, if you want to access a service that is only available on the server's network.
-                '';
-                default = null;
-                type = nullOr (
-                  listOf (submodule {
-                    options = {
-                      listen = mkOption {
-                        description = "The address to listen on.";
-                        example = "127.0.0.1:6600";
-                        type = str;
-                      };
-                      remote = mkOption {
-                        description = "The address to forward to.";
-                        example = "other.machine.internal:5301";
-                        type = str;
-                      };
-                      timeout = mkOption {
-                        description = ''
-                          Optional. The timeout for each UDP session.
-                          If omitted, the default timeout is 60 seconds.
-                        '';
-                        default = "60s";
-                        example = "20s";
-                        type = str;
-                      };
-                    };
-                  })
-                );
-              };
-              tcpTProxy = mkOption {
-                description = ''
-                  TPROXY (transparent proxy) is a Linux-specific feature that allows you to transparently proxy TCP connections.
-                  For information, please refer to [Setting up TPROXY](https://v2.hysteria.network/docs/advanced/TPROXY/).
-                '';
-                default = null;
-                type = nullOr (submodule {
+
+                type = listOf (submodule {
                   options = {
-                    listen = mkOption {
+                    listen = mkFormatsOption {
                       description = "The address to listen on.";
-                      example = ":2500";
+                      example = "127.0.0.1:6600";
+                      type = str;
+                    };
+                    remote = mkFormatsOption {
+                      description = "The address to forward to.";
+                      example = "other.machine.internal:6601";
+                      type = str;
                     };
                   };
                 });
               };
-              udpTProxy = mkOption {
+              udpForwarding = mkFormatsOption {
                 description = ''
-                  TPROXY (transparent proxy) is a Linux-specific feature that allows you to transparently proxy UDP connections.
-                  For information, please refer to [Setting up TPROXY](https://v2.hysteria.network/docs/advanced/TPROXY/).
+                  UDP Forwarding allows you to forward one or more UDP ports from the server (or any remote host) to the client.
+                  This is useful, for example, if you want to access a service that is only available on the server's network.
                 '';
-                default = null;
-                type = nullOr (submodule {
+
+                type = listOf (submodule {
                   options = {
-                    listen = mkOption {
+                    listen = mkFormatsOption {
                       description = "The address to listen on.";
-                      example = ":2500";
+                      example = "127.0.0.1:6600";
+                      type = str;
                     };
-                    timeout = mkOption {
+                    remote = mkFormatsOption {
+                      description = "The address to forward to.";
+                      example = "other.machine.internal:5301";
+                      type = str;
+                    };
+                    timeout = mkFormatsOption {
                       description = ''
                         Optional. The timeout for each UDP session.
                         If omitted, the default timeout is 60 seconds.
@@ -1333,24 +1291,66 @@ with lib.types;
                   };
                 });
               };
-              tcpRedirect = mkOption {
+              tcpTProxy = mkFormatsOption {
+                description = ''
+                  TPROXY (transparent proxy) is a Linux-specific feature that allows you to transparently proxy TCP connections.
+                  For information, please refer to [Setting up TPROXY](https://v2.hysteria.network/docs/advanced/TPROXY/).
+                '';
+
+                type = submodule {
+                  options = {
+                    listen = mkFormatsOption {
+                      description = "The address to listen on.";
+                      example = ":2500";
+                      type = str;
+                    };
+                  };
+                };
+              };
+              udpTProxy = mkFormatsOption {
+                description = ''
+                  TPROXY (transparent proxy) is a Linux-specific feature that allows you to transparently proxy UDP connections.
+                  For information, please refer to [Setting up TPROXY](https://v2.hysteria.network/docs/advanced/TPROXY/).
+                '';
+
+                type = submodule {
+                  options = {
+                    listen = mkFormatsOption {
+                      description = "The address to listen on.";
+                      example = ":2500";
+                      type = str;
+                    };
+                    timeout = mkFormatsOption {
+                      description = ''
+                        Optional. The timeout for each UDP session.
+                        If omitted, the default timeout is 60 seconds.
+                      '';
+                      default = "60s";
+                      example = "20s";
+                      type = str;
+                    };
+                  };
+                };
+              };
+              tcpRedirect = mkFormatsOption {
                 description = ''
                   REDIRECT is essentially a special case of DNAT where the destination address is localhost.
                   This method predates TPROXY as an older way to implement a TCP transparent proxy.
                   We recommend using TPROXY instead if your kernel supports it.
                   [Example](https://v2.hysteria.network/docs/advanced/Full-Client-Config/#tcp-redirect-linux-only)
                 '';
-                default = null;
-                type = nullOr (submodule {
+
+                type = submodule {
                   options = {
-                    listen = mkOption {
+                    listen = mkFormatsOption {
                       description = "The address to listen on.";
                       example = ":2500";
+                      type = str;
                     };
                   };
-                });
+                };
               };
-              tun = mkOption {
+              tun = mkFormatsOption {
                 description = ''
                   TUN mode is a cross-platform transparent proxy solution that creates a virtual network interface in the system and uses the system's routes to capture and redirect traffic.
                   It currently works on Windows, Linux, and macOS.
@@ -1361,40 +1361,40 @@ with lib.types;
                   Hysteria will automatically set up the network interface, addresses, and routes.
                   > NOTE: ipv4Exclude/ipv6Exclude is important to avoid getting a routing loop. See the comments for these fields for more information.
                 '';
-                default = null;
-                type = nullOr (submodule {
+
+                type = submodule {
                   options = {
-                    name = mkOption {
+                    name = mkFormatsOption {
                       description = "The name of the TUN interface.";
                       example = "hytun";
                       type = str;
                     };
-                    mtu = mkOption {
+                    mtu = mkFormatsOption {
                       description = "Optional. The maximum packet size accepted by the TUN interface.";
                       default = 1500;
                       type = int;
                     };
-                    timeout = mkOption {
+                    timeout = mkFormatsOption {
                       description = "Optional. UDP session timeout.";
                       default = "5m";
                       example = "10m";
                       type = str;
                     };
-                    address = mkOption {
+                    address = mkFormatsOption {
                       description = ''
                         Optional. Addresses to use on the interface.
                         Set to any private address that does not conflict with your LAN.
                         The defaults are as shown.
                       '';
-                      default = { };
+
                       type = submodule {
                         options = {
-                          ipv4 = mkOption {
+                          ipv4 = mkFormatsOption {
                             description = "The IPv4 address to use.";
                             example = "100.100.100.101/30";
                             type = str;
                           };
-                          ipv6 = mkOption {
+                          ipv6 = mkFormatsOption {
                             description = "The IPv6 address to use.";
                             example = "2001::ffff:ffff:ffff:fff1/126";
                             type = str;
@@ -1402,15 +1402,15 @@ with lib.types;
                         };
                       };
                     };
-                    route = mkOption {
+                    route = mkFormatsOption {
                       description = ''
                         Optional. Routing rules. Omitting or skipping all fields means that no routes will be added automatically.
                         In most cases, just having `ipv4Exclude` or `ipv6Exclude` is enough.
                       '';
-                      default = { };
+
                       type = submodule {
                         options = {
-                          ipv4 = mkOption {
+                          ipv4 = mkFormatsOption {
                             description = ''
                               Optional. IPv4 prefix to proxy.
                               If any other field is configured, the default is 0.0.0.0/0.
@@ -1418,7 +1418,7 @@ with lib.types;
                             type = str;
                             example = "[0.0.0.0/0]";
                           };
-                          ipv6 = mkOption {
+                          ipv6 = mkFormatsOption {
                             description = ''
                               Optional. IPv6 prefix to proxy.
                               Due to YAML limitations, quotes are required.
@@ -1427,7 +1427,7 @@ with lib.types;
                             type = str;
                             example = "[\"2000::/3\"]";
                           };
-                          ipv4Exclude = mkOption {
+                          ipv4Exclude = mkFormatsOption {
                             description = ''
                               Optional. IPv4 prefix to exclude.
                               **Add your Hysteria server address here to avoid a routing loop.**
@@ -1436,7 +1436,7 @@ with lib.types;
                             example = "[192.0.2.1/32]";
                             type = str;
                           };
-                          ipv6Exclude = mkOption {
+                          ipv6Exclude = mkFormatsOption {
                             description = ''
                               Optional. IPv6 prefix to exclude.
                               Due to YAML limitations, quotes are required.
@@ -1450,10 +1450,10 @@ with lib.types;
                       };
                     };
                   };
-                });
+                };
               };
             };
-          });
+          };
         };
       };
     };

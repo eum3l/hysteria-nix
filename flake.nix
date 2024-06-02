@@ -23,13 +23,13 @@ rec {
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-      src,
-      options-nix,
-      uspkgs,
+    { self
+    , nixpkgs
+    , flake-utils
+    , src
+    , options-nix
+    , uspkgs
+    ,
     }:
     let
       platforms = [
@@ -39,47 +39,48 @@ rec {
         "x86_64-darwin"
       ];
     in
-    flake-utils.lib.eachSystem platforms (
-      system:
-      let
-        pkgs = import nixpkgs {
-          inherit system;
-          config.allowUnsupportedSystem = true;
-        };
-      in
-      rec {
-        formatter = uspkgs.legacyPackages.${system}.nixfmt-rfc-style;
+    flake-utils.lib.eachSystem platforms
+      (
+        system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnsupportedSystem = true;
+          };
+        in
+        rec {
+          formatter = uspkgs.legacyPackages.${system}.nixfmt-rfc-style;
 
-        packages = rec {
-          default = hysteria;
-          hysteria = pkgs.callPackage ./package.nix {
-            inherit platforms src;
-            inherit (self.inputs.src) lastModifiedDate rev;
-            version = pkgs.lib.removePrefix "app/v" inputs.src.ref;
+          packages = rec {
+            default = hysteria;
+            hysteria = pkgs.callPackage ./package.nix {
+              inherit platforms src;
+              inherit (self.inputs.src) lastModifiedDate rev;
+              version = pkgs.lib.removePrefix "app/v" inputs.src.ref;
+            };
+
+            options = options-nix.lib.${system}.mkOptionScript {
+              module = self.nixosModules.default;
+              modulePrefix = "services.hysteria";
+            };
           };
 
-          options = options-nix.lib.${system}.mkOptionScript {
-            module = self.nixosModules.default;
-            modulePrefix = "services.hysteria";
+          checks.default = pkgs.callPackage ./check { hysteria = self.nixosModules.default; };
+
+          devShells.default = pkgs.mkShellNoCC {
+            HYSTERIA_LOG_LEVEL = "debug";
+            HYSTERIA_TMP = "/tmp/hysteria";
+
+            inputsFrom = [ packages.hysteria ];
+
+            shellHook = ''
+              rm -r $HYSTERIA_TMP
+              cp -r --no-preserve=mode,ownership ${src} $HYSTERIA_TMP
+              cd $HYSTERIA_TMP
+            '';
           };
-        };
-
-        checks.default = pkgs.callPackage ./check { hysteria = self.nixosModules.default; };
-
-        devShells.default = pkgs.mkShellNoCC {
-          HYSTERIA_LOG_LEVEL = "debug";
-          HYSTERIA_TMP = "/tmp/hysteria";
-
-          inputsFrom = [ packages.hysteria ];
-
-          shellHook = ''
-            rm -r $HYSTERIA_TMP
-            cp -r --no-preserve=mode,ownership ${src} $HYSTERIA_TMP
-            cd $HYSTERIA_TMP
-          '';
-        };
-      }
-    )
+        }
+      )
     // {
       nixosModules.default = import ./module.nix self.packages;
 

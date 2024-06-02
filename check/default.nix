@@ -1,38 +1,49 @@
-{ testers, hysteria, ... }:
+{
+  testers,
+  hysteria,
+  ...
+}:
 let
   password = "apfelmus";
 in
 testers.runNixOSTest {
   name = "hysteria";
-  nodes.machine =
-    { ... }:
-    {
-      imports = [ hysteria ];
-      services.hysteria = {
-        server = {
-          enable = true;
-          settings = {
-            tls = {
-              cert = ./cert.crt;
-              key = ./priv.key;
-            };
-            auth = {
-              inherit password;
+  nodes = {
+    machine =
+      { ... }:
+      {
+        imports = [ hysteria ];
+        services.hysteria = {
+          server = {
+            enable = true;
+            settings = {
+              tls = {
+                cert = ./cert.crt;
+                key = ./priv.key;
+              };
+              auth = {
+                inherit password;
+              };
             };
           };
-        };
-        client = {
-          enable = true;
-          settings = {
-            server = "127.0.0.1:443";
-            tls.insecure = true;
-            auth = password;
-            socks5.listen = "127.0.0.1:1080";
-            http.listen = "127.0.0.1:8080";
+          client = {
+            enable = true;
+            settings = {
+              server = "127.0.0.1:443";
+              tls.insecure = true;
+              auth = password;
+              socks5.listen = "127.0.0.1:1080";
+              http.listen = "127.0.0.1:8080";
+            };
           };
         };
       };
-    };
+    loadtest =
+      { ... }:
+      {
+        imports = [ hysteria ];
+      };
+  };
 
   testScript = ''
     machine.wait_for_unit("hysteria-server")
