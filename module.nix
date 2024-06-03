@@ -1,8 +1,9 @@
 packages:
-{ lib
-, config
-, pkgs
-, ...
+{
+  lib,
+  config,
+  pkgs,
+  ...
 }:
 let
   inherit (lib) optionals mkIf optionalAttrs;
@@ -1415,8 +1416,8 @@ with lib.types;
                               Optional. IPv4 prefix to proxy.
                               If any other field is configured, the default is 0.0.0.0/0.
                             '';
-                            type = str;
-                            example = "[0.0.0.0/0]";
+                            type = listOf str;
+                            example = [ "0.0.0.0/0" ];
                           };
                           ipv6 = mkFormatsOption {
                             description = ''
@@ -1424,8 +1425,8 @@ with lib.types;
                               Due to YAML limitations, quotes are required.
                               If any other field is configured, the default is ::/0.
                             '';
-                            type = str;
-                            example = "[\"2000::/3\"]";
+                            type = listOf str;
+                            example = [ "2000::/3" ];
                           };
                           ipv4Exclude = mkFormatsOption {
                             description = ''
@@ -1433,8 +1434,8 @@ with lib.types;
                               **Add your Hysteria server address here to avoid a routing loop.**
                               If you want to disable IPv4 proxying completely, you can also put `0.0.0.0/0` here.
                             '';
-                            example = "[192.0.2.1/32]";
-                            type = str;
+                            example = [ "192.0.2.1/32" ];
+                            type = listOf str;
                           };
                           ipv6Exclude = mkFormatsOption {
                             description = ''
@@ -1443,8 +1444,8 @@ with lib.types;
                               **Add your Hysteria server address here to avoid a routing loop.**
                               If you want to disable IPv6 proxying completely, you can also put `"::/0"` here.
                             '';
-                            example = "[\"2001:db8::1/128\"]";
-                            type = str;
+                            example = [ "2001:db8::1/128" ];
+                            type = listOf str;
                           };
                         };
                       };

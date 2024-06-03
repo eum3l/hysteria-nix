@@ -1,8 +1,4 @@
-{
-  testers,
-  hysteria,
-  ...
-}:
+{ testers, hysteria, ... }:
 let
   password = "apfelmus";
 in
