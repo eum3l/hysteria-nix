@@ -803,7 +803,7 @@ Optional. IPv4 prefix to proxy.
 If any other field is configured, the default is 0.0.0.0/0.
 ### Type
 ```
-null or string
+null or (list of string)
 ```
 ### Default
 ```nix
@@ -811,7 +811,9 @@ null
 ```
 ### Example 
 ```nix
-"[0.0.0.0/0]"
+[
+  "0.0.0.0/0"
+]
 ```
 ---
  
@@ -821,7 +823,7 @@ Optional. IPv4 prefix to exclude.
 If you want to disable IPv4 proxying completely, you can also put `0.0.0.0/0` here.
 ### Type
 ```
-null or string
+null or (list of string)
 ```
 ### Default
 ```nix
@@ -829,7 +831,9 @@ null
 ```
 ### Example 
 ```nix
-"[192.0.2.1/32]"
+[
+  "192.0.2.1/32"
+]
 ```
 ---
  
@@ -839,7 +843,7 @@ Due to YAML limitations, quotes are required.
 If any other field is configured, the default is ::/0.
 ### Type
 ```
-null or string
+null or (list of string)
 ```
 ### Default
 ```nix
@@ -847,7 +851,9 @@ null
 ```
 ### Example 
 ```nix
-"[\"2000::/3\"]"
+[
+  "2000::/3"
+]
 ```
 ---
  
@@ -858,7 +864,7 @@ Due to YAML limitations, quotes are required.
 If you want to disable IPv6 proxying completely, you can also put `"::/0"` here.
 ### Type
 ```
-null or string
+null or (list of string)
 ```
 ### Default
 ```nix
@@ -866,7 +872,9 @@ null
 ```
 ### Example 
 ```nix
-"[\"2001:db8::1/128\"]"
+[
+  "2001:db8::1/128"
+]
 ```
 ---
  
