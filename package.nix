@@ -12,12 +12,12 @@ buildGoModule rec {
   inherit version src;
   pname = "hysteria";
   modRoot = "./app";
-  vendorHash = "sha256-s0ujfXA1H4ejf70BOfjWWWtRq1XbBTDHdHjiNafZjLo=";
+  vendorHash = "sha256-ERFIZls17uwPfQbsQa84/0OmpErmq8V0JkPIj+8ctbA=";
   GOWORK = "off";
 
   ldflags =
     let
-      cmd = "github.com/apernet/hysteria/app/cmd";
+      cmd = "github.com/apernet/hysteria/app/v2/cmd";
       pla-arc = index: builtins.elemAt (builtins.split "-" system) index;
     in
     [
