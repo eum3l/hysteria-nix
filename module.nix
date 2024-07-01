@@ -313,6 +313,55 @@ with lib.types;
                 };
               };
 
+              sniff = mkFormatsOption {
+                description = ''
+                  Certificates are read on every TLS handshake.
+                  This means you can update the files without restarting the server.
+                '';
+
+                type = submodule {
+                  options = {
+                    enable = mkFormatsOption {
+                      description = "Whether to enable protocol sniffing.";
+                      default = false;
+                      example = true;
+                      type = bool;
+                    };
+                    timeout = mkFormatsOption {
+                      description = ''
+                        Sniffing timeout. If the protocol/domain cannot be determined within this time, 
+                        the original address will be used to initiate the connection.
+                      '';
+                      example = "2s";
+                      type = str;
+                    };
+                    rewriteDomain = mkFormatsOption {
+                      description = ''
+                        Whether to rewrite requests that are already in domain name form. 
+                        If enabled, requests with the target address already in domain name form will still be sniffed.
+                      '';
+                      default = false;
+                      example = true;
+                      type = bool;
+                    };
+                    tcpPorts = mkFormatsOption {
+                      description = ''
+                        List of TCP ports. Only TCP requests on these ports will be sniffed.
+                      '';
+                      type = str;
+                      example = "80,443,8000-9000";
+                    };
+                    udpPorts = mkFormatsOption {
+                      description = ''
+                        List of UDP ports. Only UDP requests on these ports will be sniffed.
+                      '';
+                      type = str;
+                      example = "all";
+                    };
+                  };
+                };
+              };
+
               acme = mkFormatsOption {
                 description = "ACME configuration.";
                 type = submodule {
@@ -343,47 +392,73 @@ with lib.types;
                         "zerossl"
                       ];
                     };
-                    disableHTTP = mkFormatsOption {
-                      default = false;
-                      example = true;
-                      description = "Disable HTTP challenge.";
-                      type = bool;
-                    };
-                    disableTLSALPN = mkFormatsOption {
-                      default = false;
-                      example = true;
-                      description = "Disable TLS-ALPN challenge.";
-                      type = bool;
-                    };
-                    altHTTPPort = mkFormatsOption {
-                      default = 80;
+                    http.altPort = mkFormatsOption {
+                      example = 8888;
                       description = ''
-                        Alternate HTTP challenge port.
-                        (**Note**: If you want to use anything other than 80, you must set up port forward/HTTP reverse proxy from 80 to that port, otherwise ACME will not be able to issue the certificate.)
+                        Listening port for HTTP challenges.
+                        (**Note**: Changing to a port other than 80 requires port forwarding or HTTP reverse proxy, or the challenge will fail!)
                       '';
                       type = int;
                     };
-                    altTLSALPNPort = mkFormatsOption {
-                      default = 443;
+                    tls.altPort = mkFormatsOption {
+                      example = 44333;
                       description = ''
-                        Alternate TLS-ALPN challenge port.
-                        (**Note**: If you want to use anything other than 443, you must set up port forward/SNI proxy from 443 to that port, otherwise ACME will not be able to issue the certificate.)
+                        Listening port for TLS-ALPN challenges.
+                        (**Note**: Changing to a port other than 443 requires port forwarding or TLS reverse proxy, or the challenge will fail!)
                       '';
                       type = int;
                     };
                     dir = mkFormatsOption {
                       default = "acme";
-                      description = "The directory to store the ACME account key and certificates.";
+                      description = "Directory to store ACME credentials.";
                       type = str;
                     };
                     listenHost = mkFormatsOption {
                       default = "0.0.0.0";
                       example = "192.168.5.150";
                       description = ''
-                        The host address (not including the port) to listen on for the ACME challenge.
-                        If omitted, the server will listen on all interfaces.
+                        Listening address for ACME verification (no port). 
+                        Defaults to listening on all available interfaces.
                       '';
                       type = str;
+                    };
+                    type = mkFormatsOption {
+                      description = "ACME challenge type.";
+                      example = "http";
+                      type = enum [
+                        "http"
+                        "tls"
+                        "dns"
+                      ];
+                    };
+                    dns = mkFormatsOption {
+                      description = ''
+                        ACME DNS can obtain certificates through the DNS service provider API. T
+                        his function does not rely on specific ports (does not occupy 80/443) and external access.
+                      '';
+                      type = submodule {
+                        options = {
+                          name = mkFormatsOption {
+                            description = "Name of the DNS provider.";
+                            example = "cloudflare";
+                            type = enum [
+                              "cloudflare"
+                              "duckdns"
+                              "gandi"
+                              "godaddy"
+                              "namedotcom"
+                              "vultr"
+                            ];
+                          };
+                          config = mkFormatsOption {
+                            description = ''
+                              ACME DNS provider configuration. [ACME DNS Config documentation](https://v2.hysteria.network/docs/advanced/ACME-DNS-Config/)
+                            '';
+                            example.cloudflare_api_token = "Dxabckw9dB_jYBdi89kgyaS8wRjqqSsd679urScKOBP";
+                            type = attrsOf str;
+                          };
+                        };
+                      };
                     };
                   };
                 };

@@ -13,6 +13,11 @@ testers.runNixOSTest {
           server = {
             enable = true;
             settings = {
+              sniff = {
+                enable = true;
+                tcpPorts = "all";
+                udpPorts = "all";
+              };
               tls = {
                 cert = ./cert.crt;
                 key = ./priv.key;
