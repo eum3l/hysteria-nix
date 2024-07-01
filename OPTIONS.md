@@ -1249,32 +1249,6 @@ null
 ```
 ---
  
-## services.hysteria.server.settings.acme.altHTTPPort
-Alternate HTTP challenge port.
-(**Note**: If you want to use anything other than 80, you must set up port forward/HTTP reverse proxy from 80 to that port, otherwise ACME will not be able to issue the certificate.)
-### Type
-```
-signed integer
-```
-### Default
-```nix
-80
-```
----
- 
-## services.hysteria.server.settings.acme.altTLSALPNPort
-Alternate TLS-ALPN challenge port.
-(**Note**: If you want to use anything other than 443, you must set up port forward/SNI proxy from 443 to that port, otherwise ACME will not be able to issue the certificate.)
-### Type
-```
-signed integer
-```
-### Default
-```nix
-443
-```
----
- 
 ## services.hysteria.server.settings.acme.ca
 The CA to use.
 ### Type
@@ -1292,7 +1266,7 @@ one of "letsencrypt", "zerossl"
 ---
  
 ## services.hysteria.server.settings.acme.dir
-The directory to store the ACME account key and certificates.
+Directory to store ACME credentials.
 ### Type
 ```
 string
@@ -1303,35 +1277,50 @@ string
 ```
 ---
  
-## services.hysteria.server.settings.acme.disableHTTP
-Disable HTTP challenge.
+## services.hysteria.server.settings.acme.dns
+ACME DNS can obtain certificates through the DNS service provider API. T
+his function does not rely on specific ports (does not occupy 80/443) and external access.
 ### Type
 ```
-boolean
+null or (submodule)
 ```
 ### Default
 ```nix
-false
-```
-### Example 
-```nix
-true
+null
 ```
 ---
  
-## services.hysteria.server.settings.acme.disableTLSALPN
-Disable TLS-ALPN challenge.
+## services.hysteria.server.settings.acme.dns.config
+ACME DNS provider configuration. [ACME DNS Config documentation](https://v2.hysteria.network/docs/advanced/ACME-DNS-Config/)
 ### Type
 ```
-boolean
+null or (attribute set of string)
 ```
 ### Default
 ```nix
-false
+null
 ```
 ### Example 
 ```nix
-true
+{
+  cloudflare_api_token = "Dxabckw9dB_jYBdi89kgyaS8wRjqqSsd679urScKOBP";
+}
+```
+---
+ 
+## services.hysteria.server.settings.acme.dns.name
+Name of the DNS provider.
+### Type
+```
+null or one of "cloudflare", "duckdns", "gandi", "godaddy", "namedotcom", "vultr"
+```
+### Default
+```nix
+null
+```
+### Example 
+```nix
+"cloudflare"
 ```
 ---
  
@@ -1370,9 +1359,26 @@ null
 ```
 ---
  
+## services.hysteria.server.settings.acme.http.altPort
+Listening port for HTTP challenges.
+(**Note**: Changing to a port other than 80 requires port forwarding or HTTP reverse proxy, or the challenge will fail!)
+### Type
+```
+null or signed integer
+```
+### Default
+```nix
+null
+```
+### Example 
+```nix
+8888
+```
+---
+ 
 ## services.hysteria.server.settings.acme.listenHost
-The host address (not including the port) to listen on for the ACME challenge.
-If omitted, the server will listen on all interfaces.
+Listening address for ACME verification (no port). 
+Defaults to listening on all available interfaces.
 ### Type
 ```
 string
@@ -1384,6 +1390,39 @@ string
 ### Example 
 ```nix
 "192.168.5.150"
+```
+---
+ 
+## services.hysteria.server.settings.acme.tls.altPort
+Listening port for TLS-ALPN challenges.
+(**Note**: Changing to a port other than 443 requires port forwarding or TLS reverse proxy, or the challenge will fail!)
+### Type
+```
+null or signed integer
+```
+### Default
+```nix
+null
+```
+### Example 
+```nix
+44333
+```
+---
+ 
+## services.hysteria.server.settings.acme.type
+ACME challenge type.
+### Type
+```
+null or one of "http", "tls", "dns"
+```
+### Default
+```nix
+null
+```
+### Example 
+```nix
+"http"
 ```
 ---
  
@@ -2426,6 +2465,101 @@ string
 ### Example 
 ```nix
 "8s"
+```
+---
+ 
+## services.hysteria.server.settings.sniff
+Certificates are read on every TLS handshake.
+This means you can update the files without restarting the server.
+### Type
+```
+null or (submodule)
+```
+### Default
+```nix
+null
+```
+---
+ 
+## services.hysteria.server.settings.sniff.enable
+Whether to enable protocol sniffing.
+### Type
+```
+boolean
+```
+### Default
+```nix
+false
+```
+### Example 
+```nix
+true
+```
+---
+ 
+## services.hysteria.server.settings.sniff.rewriteDomain
+Whether to rewrite requests that are already in domain name form. 
+If enabled, requests with the target address already in domain name form will still be sniffed.
+### Type
+```
+boolean
+```
+### Default
+```nix
+false
+```
+### Example 
+```nix
+true
+```
+---
+ 
+## services.hysteria.server.settings.sniff.tcpPorts
+List of TCP ports. Only TCP requests on these ports will be sniffed.
+### Type
+```
+null or string
+```
+### Default
+```nix
+null
+```
+### Example 
+```nix
+"80,443,8000-9000"
+```
+---
+ 
+## services.hysteria.server.settings.sniff.timeout
+Sniffing timeout. If the protocol/domain cannot be determined within this time, 
+the original address will be used to initiate the connection.
+### Type
+```
+null or string
+```
+### Default
+```nix
+null
+```
+### Example 
+```nix
+"2s"
+```
+---
+ 
+## services.hysteria.server.settings.sniff.udpPorts
+List of UDP ports. Only UDP requests on these ports will be sniffed.
+### Type
+```
+null or string
+```
+### Default
+```nix
+null
+```
+### Example 
+```nix
+"all"
 ```
 ---
  
