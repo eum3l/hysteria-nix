@@ -12,8 +12,8 @@ buildGoModule rec {
   inherit version src;
   pname = "hysteria";
   modRoot = "./app";
-  vendorHash = "sha256-ERFIZls17uwPfQbsQa84/0OmpErmq8V0JkPIj+8ctbA=";
-  GOWORK = "off";
+  vendorHash = "sha256-1B9l4nrbmFZvxCggRD0d7VxA4HSv76qtyv2E6evDXzE=";
+  env.GOWORK = "off";
 
   ldflags =
     let
@@ -30,8 +30,6 @@ buildGoModule rec {
       "-X ${cmd}.appPlatform=${pla-arc 2}"
       "-X ${cmd}.appArch=${pla-arc 0}"
     ];
-
-  GOFLAGS = [ "-trimpath" ];
 
   patchPhase = ''
     rm app/internal/http/server_test.go \

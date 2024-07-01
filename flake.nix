@@ -9,15 +9,14 @@ rec {
   };
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
-    uspkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     options-nix.url = "github:eum3l/options.nix";
     src = {
       type = "github";
       owner = "apernet";
       repo = "hysteria";
-      ref = "app/v2.4.5";
+      ref = "app/v2.5.0";
       flake = false;
     };
   };
@@ -29,7 +28,6 @@ rec {
       flake-utils,
       src,
       options-nix,
-      uspkgs,
     }:
     let
       platforms = [
@@ -48,7 +46,7 @@ rec {
         };
       in
       rec {
-        formatter = uspkgs.legacyPackages.${system}.nixfmt-rfc-style;
+        formatter = pkgs.nixfmt-rfc-style;
 
         packages = rec {
           default = hysteria;
