@@ -12,7 +12,7 @@ buildGoModule rec {
   inherit version src;
   pname = "hysteria";
   modRoot = "./app";
-  vendorHash = "sha256-1B9l4nrbmFZvxCggRD0d7VxA4HSv76qtyv2E6evDXzE=";
+  vendorHash = "sha256-WegS8WUqVR4CUPAfy0grVVIpdmB0wnW4KRPh+N3DKOc=";
   env.GOWORK = "off";
 
   ldflags =
