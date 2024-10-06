@@ -316,9 +316,9 @@ with lib.types;
                         Verify the SNI provided by the client. 
                         Accept the connection only when it matches what's in the certificate. 
                         Terminate the TLS handshake otherwise.
-                        Set to ´strict´ to enforce this behavior.
-                        Set to ´disable´ to disable this entirely.
-                        The default is ´dns-san´, which enables this feature 
+                        Set to `strict` to enforce this behavior.
+                        Set to `disable` to disable this entirely.
+                        The default is `dns-san`, which enables this feature 
                         only when the certificate contains the "Subject Alternative Name" 
                         extension with a domain name in it.
                       '';
@@ -410,7 +410,8 @@ with lib.types;
                       example = 8888;
                       description = ''
                         Listening port for HTTP challenges.
-                        (**Note**: Changing to a port other than 80 requires port forwarding or HTTP reverse proxy, or the challenge will fail!)
+
+                        > **NOTE**: Changing to a port other than 80 requires port forwarding or HTTP reverse proxy, or the challenge will fail!
                       '';
                       type = int;
                     };
@@ -418,7 +419,8 @@ with lib.types;
                       example = 44333;
                       description = ''
                         Listening port for TLS-ALPN challenges.
-                        (**Note**: Changing to a port other than 443 requires port forwarding or TLS reverse proxy, or the challenge will fail!)
+
+                        > **NOTE**: Changing to a port other than 443 requires port forwarding or TLS reverse proxy, or the challenge will fail!
                       '';
                       type = int;
                     };
@@ -481,7 +483,9 @@ with lib.types;
               bandwidth = mkFormatsOption {
                 description = ''
                   The bandwidth values on the server side act as speed limits, limiting the maximum rate at which the server will send and receive data (per client).
-                  **Note that the server's upload speed is the client's download speed, and vice versa.**
+                  
+                  > **NOTE**: that the server's upload speed is the client's download speed, and vice versa.
+                  
                   You can omit these values or set them to zero on either or both sides, which would mean no limit.
                   Supported units are:
                   + bps or b (bits per second)
@@ -600,10 +604,10 @@ with lib.types;
                         ```json
                         {
                           "ok": true,
-                            "id": "john_doe"
+                          "id": "john_doe"
                         }
                         ```
-                        > NOTE: The HTTP status code must be 200 for the authentication to be considered successful.
+                        > **NOTE**: The HTTP status code must be 200 for the authentication to be considered successful.
                       '';
 
                       type = submodule {
@@ -753,8 +757,10 @@ with lib.types;
                   For details on syntax, usage and other information, please refer to the [ACL documentation](https://v2.hysteria.network/docs/advanced/ACL/).
                   You can have either `file` or `inline`, but not both.
 
-                  > NOTE: Hysteria currently uses the protobuf-based "dat" format for geoip/geosite data originating from v2ray.
+                  > **NOTE**: Hysteria currently uses the protobuf-based "dat" format for geoip/geosite data originating from v2ray.
+                  
                   > If you don't need any customization, you can omit the `geoip` or `geosite` fields and let Hysteria automatically download the latest version [Loyalsoldier/v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat) to your working directory.
+                  
                   > The files will only be downloaded and used if your ACL has at least one rule that uses this feature.
                 '';
 
@@ -799,8 +805,11 @@ with lib.types;
                       description = ''
                         Optional. The interval at which to refresh the GeoIP/GeoSite databases.
                         168 hours (1 week) by default. Only applies if the GeoIP/GeoSite databases are automatically downloaded.
+                        
                         > Hysteria currently only downloads the GeoIP/GeoSite databases once at startup.
+                        
                         > You will need to use external tools to periodically restart the Hysteria server in order to update the databases regularly through geoUpdateInterval.
+                        
                         > This may change in future versions.
                       '';
                       default = "168h";
@@ -820,7 +829,7 @@ with lib.types;
                   + socks5: SOCKS5 proxy.
                   + http: HTTP/HTTPS proxy.
 
-                  > NOTE: HTTP/HTTPS proxies do not support UDP at the protocol level. Sending UDP traffic to HTTP outbounds will result in rejection.
+                  > **NOTE**: HTTP/HTTPS proxies do not support UDP at the protocol level. Sending UDP traffic to HTTP outbounds will result in rejection.
 
                   **If you do not use ACL, all connections will always be routed through the first ("default") outbound in the list, and all other outbounds will be ignored.**
                 '';
@@ -911,7 +920,9 @@ with lib.types;
                     direct = mkFormatsOption {
                       description = ''
                         The direct outbound has a few additional options that can be used to customize its behavior:
-                        > NOTE: The options `bindIPv4`, `bindIPv6`, and `bindDevice` are mutually exclusive.
+                        
+                        > **NOTE**: The options `bindIPv4`, `bindIPv6`, and `bindDevice` are mutually exclusive.
+                        
                         > You can either specify `bindIPv4` and/or `bindIPv6` without `bindDevice`, or use `bindDevice` without `bindIPv4` and `bindIPv6`.
                       '';
                       type = submodule {
@@ -963,7 +974,9 @@ with lib.types;
                 description = ''
                   The Traffic Stats API allows you to query the server's traffic statistics and kick clients using an HTTP API.
                   For endpoints and usage, please refer to the [Traffic Stats API documentation](https://v2.hysteria.network/docs/advanced/Traffic-Stats-API/).
-                  > NOTE: If you don't set a secret, anyone with access to your API listening address will be able to see traffic stats and kick users.
+                  
+                  > **NOTE**: If you don't set a secret, anyone with access to your API listening address will be able to see traffic stats and kick users.
+                  
                   > We strongly recommend setting a secret, or at least using ACL to block users from accessing the API.
                 '';
 
@@ -1212,6 +1225,7 @@ with lib.types;
                   For more details, see [Bandwidth negotiation process](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#bandwidth-negotiation-process) and [Congestion control details](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#congestion-control-details).
 
                   > ⚠️ **Warning** Higher bandwidth values are not always better; be very careful not to exceed the maximum bandwidth that your current network can support.
+                  
                   > Doing so will backfire, causing network congestion and unstable connections.
 
                   The client's actual upload speed will be the lesser of the value specified here and the server's maximum download speed (if set by the server).
@@ -1449,7 +1463,8 @@ with lib.types;
                   Compared to Hysteria 1's implementation, Hysteria 2's TUN is based on sing-tun's "system" stack,
                   requiring a /30 IPv4 address and a /126 IPv6 address to be configured on the interface.
                   Hysteria will automatically set up the network interface, addresses, and routes.
-                  > NOTE: ipv4Exclude/ipv6Exclude is important to avoid getting a routing loop. See the comments for these fields for more information.
+                  
+                  > **NOTE**: ipv4Exclude/ipv6Exclude is important to avoid getting a routing loop. See the comments for these fields for more information.
                 '';
 
                 type = submodule {
