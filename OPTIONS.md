@@ -1,6 +1,7 @@
 # Options 
 ## services.hysteria.client.dir
 Working directory of the OpenGFW service and home of `hysteria-client.user`.
+
 ### Type
 ```
 (optionally newline-terminated) single-line string
@@ -14,6 +15,7 @@ Working directory of the OpenGFW service and home of `hysteria-client.user`.
 ## services.hysteria.client.enable
 Whether to enable Hysteria (client, a powerful, lightning fast and censorship resistant proxy.
 .
+
 ### Type
 ```
 boolean
@@ -30,6 +32,7 @@ true
  
 ## services.hysteria.client.logFormat
 Format of the logs.
+
 ### Type
 ```
 one of "json", "console"
@@ -46,6 +49,7 @@ one of "json", "console"
  
 ## services.hysteria.client.logLevel
 Level of the logs.
+
 ### Type
 ```
 one of "debug", "info", "warn", "error"
@@ -62,6 +66,7 @@ one of "debug", "info", "warn", "error"
  
 ## services.hysteria.client.package
 The hysteria package to use.
+
 ### Type
 ```
 package
@@ -74,6 +79,7 @@ pkgs.hysteria
  
 ## services.hysteria.client.settings
 Hysteria client settings
+
 ### Type
 ```
 null or (submodule)
@@ -86,6 +92,7 @@ null
  
 ## services.hysteria.client.settings.auth
 If the server uses the `userpass` authentication, the format must be `username:password`.
+
 ### Type
 ```
 null or string
@@ -107,6 +114,7 @@ If you want to use BBR instead of Brutal, you can delete the entire bandwidth se
 For more details, see [Bandwidth negotiation process](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#bandwidth-negotiation-process) and [Congestion control details](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#congestion-control-details).
 
 > ⚠️ **Warning** Higher bandwidth values are not always better; be very careful not to exceed the maximum bandwidth that your current network can support.
+
 > Doing so will backfire, causing network congestion and unstable connections.
 
 The client's actual upload speed will be the lesser of the value specified here and the server's maximum download speed (if set by the server).
@@ -118,6 +126,7 @@ Supported units are:
 + mbps or mb or m (megabits per second)
 + gbps or gb or g (gigabits per second)
 + tbps or tb or t (terabits per second)
+
 ### Type
 ```
 null or (submodule)
@@ -130,6 +139,7 @@ null
  
 ## services.hysteria.client.settings.bandwidth.down
 The client's download bandwidth.
+
 ### Type
 ```
 string
@@ -146,6 +156,7 @@ string
  
 ## services.hysteria.client.settings.bandwidth.up
 The client's upload bandwidth.
+
 ### Type
 ```
 string
@@ -165,6 +176,7 @@ Fast Open can shave one roundtrip time (RTT) off each connection,
 but at the cost of the correct semantics of SOCKS5/HTTP proxy protocols.
 When this is enabled, the client always immediately accepts a connection without confirming with the server that the destination is reachable.
 If the server then fails or rejects the connection, the client will simply close the connection without sending any data back to the proxy client.
+
 ### Type
 ```
 boolean
@@ -182,6 +194,7 @@ true
 ## services.hysteria.client.settings.http
 An HTTP proxy server that can be used with any HTTP proxy-compatible application.
 Supports both plaintext HTTP and HTTPS (CONNECT).
+
 ### Type
 ```
 null or (submodule)
@@ -194,6 +207,7 @@ null
  
 ## services.hysteria.client.settings.http.listen
 The address to listen on.
+
 ### Type
 ```
 null or string
@@ -210,6 +224,7 @@ null
  
 ## services.hysteria.client.settings.http.password
 Optional. The password to require for authentication.
+
 ### Type
 ```
 null or string
@@ -226,6 +241,7 @@ null
  
 ## services.hysteria.client.settings.http.realm
 Optional. The realm to require for authentication.
+
 ### Type
 ```
 null or string
@@ -242,6 +258,7 @@ null
  
 ## services.hysteria.client.settings.http.username
 Optional. The username to require for authentication.
+
 ### Type
 ```
 null or string
@@ -261,6 +278,7 @@ When enabled, the client is "lazy" in the sense that it will only attempt to con
 This differs from the default behavior, where the client attempts to connect to the server as soon as it starts up.
 The `lazy` option can be useful if you're unsure when you'll use the client and want to avoid idle connections.
 It's also useful if your Internet connection might not be ready when you start the Hysteria client.
+
 ### Type
 ```
 boolean
@@ -280,6 +298,7 @@ By default, the Hysteria protocol mimics HTTP/3.
 If your network specifically blocks QUIC or HTTP/3 traffic (but not UDP in general), obfuscation can be used to work around this.
 We currently have an obfuscation implementation called "Salamander" that converts packets into seamingly random bytes with no pattern.
 This feature requires a password that must be identical on both the client and server sides.
+
 ### Type
 ```
 null or (submodule)
@@ -292,6 +311,7 @@ null
  
 ## services.hysteria.client.settings.obfs.salamander.password
 Replace with a strong password of your choice.
+
 ### Type
 ```
 null or string
@@ -308,6 +328,7 @@ null
  
 ## services.hysteria.client.settings.obfs.type
 Obfuscation type
+
 ### Type
 ```
 value "salamander" (singular enum)
@@ -320,6 +341,7 @@ value "salamander" (singular enum)
  
 ## services.hysteria.client.settings.quic.sockopts.bindInterface
 Forces QUIC packets to be sent through this interface.
+
 ### Type
 ```
 null or string
@@ -339,6 +361,7 @@ Path to a Unix Socket that is listened to by other processes.
 The Hysteria client will send the file descriptor (FD) used for the QUIC connection as ancillary information to this Unix Socket,
 allowing the listening process to perform other custom configurations.
 This option can be used in Android client development; please refer to the [FD Control Protocol](https://v2.hysteria.network/docs/advanced/FD-Control/) for more details.
+
 ### Type
 ```
 null or string
@@ -355,6 +378,7 @@ null
  
 ## services.hysteria.client.settings.quic.sockopts.fwmark
 The `SO_MARK` tag to be added to QUIC packets.
+
 ### Type
 ```
 null or signed integer
@@ -374,6 +398,7 @@ The server field specifies the address of the Hysteria server that the client sh
 The address can be formatted as either `host:port` or just `host`. If the port is omitted, it defaults to 443.
 You also have the option to use a Hysteria 2 URI (`hysteria2://`).
 In this case, because the URI already includes the password and certain other settings, you don't (and can't) specify them separately in the configuration file.
+
 ### Type
 ```
 null or string
@@ -391,6 +416,7 @@ null
 ## services.hysteria.client.settings.socks5
 A SOCKS5 proxy server that can be used with any SOCKS5-compatible application.
 Supports both TCP and UDP.
+
 ### Type
 ```
 null or (submodule)
@@ -403,6 +429,7 @@ null
  
 ## services.hysteria.client.settings.socks5.disableUDP
 Optional. Disable UDP support.
+
 ### Type
 ```
 boolean
@@ -419,6 +446,7 @@ true
  
 ## services.hysteria.client.settings.socks5.listen
 The address to listen on.
+
 ### Type
 ```
 null or string
@@ -435,6 +463,7 @@ null
  
 ## services.hysteria.client.settings.socks5.password
 Optional. The password to require for authentication.
+
 ### Type
 ```
 null or string
@@ -451,6 +480,7 @@ null
  
 ## services.hysteria.client.settings.socks5.username
 Optional. The username to require for authentication.
+
 ### Type
 ```
 null or string
@@ -468,6 +498,7 @@ null
 ## services.hysteria.client.settings.tcpForwarding
 TCP Forwarding allows you to forward one or more TCP ports from the server (or any remote host) to the client.
 This is useful, for example, if you want to access a service that is only available on the server's network.
+
 ### Type
 ```
 null or (list of (submodule))
@@ -480,6 +511,7 @@ null
  
 ## services.hysteria.client.settings.tcpForwarding.*.listen
 The address to listen on.
+
 ### Type
 ```
 null or string
@@ -496,6 +528,7 @@ null
  
 ## services.hysteria.client.settings.tcpForwarding.*.remote
 The address to forward to.
+
 ### Type
 ```
 null or string
@@ -515,6 +548,7 @@ REDIRECT is essentially a special case of DNAT where the destination address is 
 This method predates TPROXY as an older way to implement a TCP transparent proxy.
 We recommend using TPROXY instead if your kernel supports it.
 [Example](https://v2.hysteria.network/docs/advanced/Full-Client-Config/#tcp-redirect-linux-only)
+
 ### Type
 ```
 null or (submodule)
@@ -527,6 +561,7 @@ null
  
 ## services.hysteria.client.settings.tcpRedirect.listen
 The address to listen on.
+
 ### Type
 ```
 null or string
@@ -544,6 +579,7 @@ null
 ## services.hysteria.client.settings.tcpTProxy
 TPROXY (transparent proxy) is a Linux-specific feature that allows you to transparently proxy TCP connections.
 For information, please refer to [Setting up TPROXY](https://v2.hysteria.network/docs/advanced/TPROXY/).
+
 ### Type
 ```
 null or (submodule)
@@ -556,6 +592,7 @@ null
  
 ## services.hysteria.client.settings.tcpTProxy.listen
 The address to listen on.
+
 ### Type
 ```
 null or string
@@ -572,6 +609,7 @@ null
  
 ## services.hysteria.client.settings.tls
 TLS client settings
+
 ### Type
 ```
 null or (submodule)
@@ -584,6 +622,7 @@ null
  
 ## services.hysteria.client.settings.tls.ca
 Use a custom CA certificate for TLS verification.
+
 ### Type
 ```
 null or path
@@ -600,6 +639,7 @@ null
  
 ## services.hysteria.client.settings.tls.insecure
 Disable TLS verification.
+
 ### Type
 ```
 boolean
@@ -618,6 +658,7 @@ true
 Verify the server's certificate fingerprint.
 You can obtain the fingerprint of your certificate using openssl:
 `openssl x509 -noout -fingerprint -sha256 -in your_cert.crt`
+
 ### Type
 ```
 null or string
@@ -635,6 +676,7 @@ null
 ## services.hysteria.client.settings.tls.sni
 Server name to use for TLS verification.
 If omitted, the server name will be extracted from the `server` field.
+
 ### Type
 ```
 null or string
@@ -652,6 +694,7 @@ null
 ## services.hysteria.client.settings.transport
 The `transport` section is for customizing the underlying protocol used by the QUIC connection.
 Currently the only type available is `udp`, but we reserve it for possible future expansions.
+
 ### Type
 ```
 null or (submodule)
@@ -664,6 +707,7 @@ null
  
 ## services.hysteria.client.settings.transport.options.type
 Transport type selection
+
 ### Type
 ```
 value "udp" (singular enum)
@@ -678,6 +722,7 @@ value "udp" (singular enum)
 The port hopping interval.
 This is only relevant if you're using a port hopping address.
 See [Port Hopping](https://v2.hysteria.network/docs/advanced/Port-Hopping/) for more information.
+
 ### Type
 ```
 string
@@ -700,7 +745,9 @@ It also takes control of the TCP stack to speed up TCP connections.
 Compared to Hysteria 1's implementation, Hysteria 2's TUN is based on sing-tun's "system" stack,
 requiring a /30 IPv4 address and a /126 IPv6 address to be configured on the interface.
 Hysteria will automatically set up the network interface, addresses, and routes.
-> NOTE: ipv4Exclude/ipv6Exclude is important to avoid getting a routing loop. See the comments for these fields for more information.
+
+> **NOTE**: ipv4Exclude/ipv6Exclude is important to avoid getting a routing loop. See the comments for these fields for more information.
+
 ### Type
 ```
 null or (submodule)
@@ -715,6 +762,7 @@ null
 Optional. Addresses to use on the interface.
 Set to any private address that does not conflict with your LAN.
 The defaults are as shown.
+
 ### Type
 ```
 null or (submodule)
@@ -727,6 +775,7 @@ null
  
 ## services.hysteria.client.settings.tun.address.ipv4
 The IPv4 address to use.
+
 ### Type
 ```
 null or string
@@ -743,6 +792,7 @@ null
  
 ## services.hysteria.client.settings.tun.address.ipv6
 The IPv6 address to use.
+
 ### Type
 ```
 null or string
@@ -759,6 +809,7 @@ null
  
 ## services.hysteria.client.settings.tun.mtu
 Optional. The maximum packet size accepted by the TUN interface.
+
 ### Type
 ```
 signed integer
@@ -771,6 +822,7 @@ signed integer
  
 ## services.hysteria.client.settings.tun.name
 The name of the TUN interface.
+
 ### Type
 ```
 null or string
@@ -788,6 +840,7 @@ null
 ## services.hysteria.client.settings.tun.route
 Optional. Routing rules. Omitting or skipping all fields means that no routes will be added automatically.
 In most cases, just having `ipv4Exclude` or `ipv6Exclude` is enough.
+
 ### Type
 ```
 null or (submodule)
@@ -801,6 +854,7 @@ null
 ## services.hysteria.client.settings.tun.route.ipv4
 Optional. IPv4 prefix to proxy.
 If any other field is configured, the default is 0.0.0.0/0.
+
 ### Type
 ```
 null or (list of string)
@@ -821,6 +875,7 @@ null
 Optional. IPv4 prefix to exclude.
 **Add your Hysteria server address here to avoid a routing loop.**
 If you want to disable IPv4 proxying completely, you can also put `0.0.0.0/0` here.
+
 ### Type
 ```
 null or (list of string)
@@ -841,6 +896,7 @@ null
 Optional. IPv6 prefix to proxy.
 Due to YAML limitations, quotes are required.
 If any other field is configured, the default is ::/0.
+
 ### Type
 ```
 null or (list of string)
@@ -862,6 +918,7 @@ Optional. IPv6 prefix to exclude.
 Due to YAML limitations, quotes are required.
 **Add your Hysteria server address here to avoid a routing loop.**
 If you want to disable IPv6 proxying completely, you can also put `"::/0"` here.
+
 ### Type
 ```
 null or (list of string)
@@ -880,6 +937,7 @@ null
  
 ## services.hysteria.client.settings.tun.timeout
 Optional. UDP session timeout.
+
 ### Type
 ```
 string
@@ -897,6 +955,7 @@ string
 ## services.hysteria.client.settings.udpForwarding
 UDP Forwarding allows you to forward one or more UDP ports from the server (or any remote host) to the client.
 This is useful, for example, if you want to access a service that is only available on the server's network.
+
 ### Type
 ```
 null or (list of (submodule))
@@ -909,6 +968,7 @@ null
  
 ## services.hysteria.client.settings.udpForwarding.*.listen
 The address to listen on.
+
 ### Type
 ```
 null or string
@@ -925,6 +985,7 @@ null
  
 ## services.hysteria.client.settings.udpForwarding.*.remote
 The address to forward to.
+
 ### Type
 ```
 null or string
@@ -942,6 +1003,7 @@ null
 ## services.hysteria.client.settings.udpForwarding.*.timeout
 Optional. The timeout for each UDP session.
 If omitted, the default timeout is 60 seconds.
+
 ### Type
 ```
 string
@@ -959,6 +1021,7 @@ string
 ## services.hysteria.client.settings.udpTProxy
 TPROXY (transparent proxy) is a Linux-specific feature that allows you to transparently proxy UDP connections.
 For information, please refer to [Setting up TPROXY](https://v2.hysteria.network/docs/advanced/TPROXY/).
+
 ### Type
 ```
 null or (submodule)
@@ -971,6 +1034,7 @@ null
  
 ## services.hysteria.client.settings.udpTProxy.listen
 The address to listen on.
+
 ### Type
 ```
 null or string
@@ -988,6 +1052,7 @@ null
 ## services.hysteria.client.settings.udpTProxy.timeout
 Optional. The timeout for each UDP session.
 If omitted, the default timeout is 60 seconds.
+
 ### Type
 ```
 string
@@ -1004,6 +1069,7 @@ string
  
 ## services.hysteria.client.settingsFile
 Path to file containing Hysteria settings.
+
 ### Type
 ```
 null or path
@@ -1016,6 +1082,7 @@ null
  
 ## services.hysteria.client.user
 Username of the Hysteria user
+
 ### Type
 ```
 string
@@ -1028,6 +1095,7 @@ string
  
 ## services.hysteria.server.dir
 Working directory of the OpenGFW service and home of `hysteria-server.user`.
+
 ### Type
 ```
 (optionally newline-terminated) single-line string
@@ -1041,6 +1109,7 @@ Working directory of the OpenGFW service and home of `hysteria-server.user`.
 ## services.hysteria.server.enable
 Whether to enable Hysteria (server, a powerful, lightning fast and censorship resistant proxy.
 .
+
 ### Type
 ```
 boolean
@@ -1057,6 +1126,7 @@ true
  
 ## services.hysteria.server.logFormat
 Format of the logs.
+
 ### Type
 ```
 one of "json", "console"
@@ -1073,6 +1143,7 @@ one of "json", "console"
  
 ## services.hysteria.server.logLevel
 Level of the logs.
+
 ### Type
 ```
 one of "debug", "info", "warn", "error"
@@ -1089,6 +1160,7 @@ one of "debug", "info", "warn", "error"
  
 ## services.hysteria.server.openFirewall
 Open the firewall for the Hysteria server.
+
 ### Type
 ```
 boolean
@@ -1105,6 +1177,7 @@ true
  
 ## services.hysteria.server.package
 The hysteria package to use.
+
 ### Type
 ```
 package
@@ -1117,6 +1190,7 @@ pkgs.hysteria
  
 ## services.hysteria.server.settings
 Hysteria server settings
+
 ### Type
 ```
 null or (submodule)
@@ -1133,9 +1207,12 @@ For example, you can use ACL to block certain addresses, or to use different out
 For details on syntax, usage and other information, please refer to the [ACL documentation](https://v2.hysteria.network/docs/advanced/ACL/).
 You can have either `file` or `inline`, but not both.
 
-> NOTE: Hysteria currently uses the protobuf-based "dat" format for geoip/geosite data originating from v2ray.
+> **NOTE**: Hysteria currently uses the protobuf-based "dat" format for geoip/geosite data originating from v2ray.
+
 > If you don't need any customization, you can omit the `geoip` or `geosite` fields and let Hysteria automatically download the latest version [Loyalsoldier/v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat) to your working directory.
+
 > The files will only be downloaded and used if your ACL has at least one rule that uses this feature.
+
 ### Type
 ```
 null or (submodule)
@@ -1148,6 +1225,7 @@ null
  
 ## services.hysteria.server.settings.acl.file
 The path to the ACL file.
+
 ### Type
 ```
 null or path
@@ -1165,9 +1243,13 @@ null
 ## services.hysteria.server.settings.acl.geoUpdateInterval
 Optional. The interval at which to refresh the GeoIP/GeoSite databases.
 168 hours (1 week) by default. Only applies if the GeoIP/GeoSite databases are automatically downloaded.
+
 > Hysteria currently only downloads the GeoIP/GeoSite databases once at startup.
+
 > You will need to use external tools to periodically restart the Hysteria server in order to update the databases regularly through geoUpdateInterval.
+
 > This may change in future versions.
+
 ### Type
 ```
 string
@@ -1185,6 +1267,7 @@ string
 ## services.hysteria.server.settings.acl.geoip
 Optional. The path to the GeoIP database file.
 If this field is omitted, Hysteria will automatically download the latest database to your working directory.
+
 ### Type
 ```
 null or path
@@ -1202,6 +1285,7 @@ null
 ## services.hysteria.server.settings.acl.geosite
 Optional. The path to the GeoSite database file.
 If this field is omitted, Hysteria will automatically download the latest database to your working directory.
+
 ### Type
 ```
 null or path
@@ -1218,6 +1302,7 @@ null
  
 ## services.hysteria.server.settings.acl.inline
 The list of inline ACL rules. [ACL documentation](https://v2.hysteria.network/docs/advanced/ACL/)]
+
 ### Type
 ```
 null or (list of string)
@@ -1239,6 +1324,7 @@ null
  
 ## services.hysteria.server.settings.acme
 ACME configuration.
+
 ### Type
 ```
 null or (submodule)
@@ -1251,6 +1337,7 @@ null
  
 ## services.hysteria.server.settings.acme.ca
 The CA to use.
+
 ### Type
 ```
 one of "letsencrypt", "zerossl"
@@ -1267,6 +1354,7 @@ one of "letsencrypt", "zerossl"
  
 ## services.hysteria.server.settings.acme.dir
 Directory to store ACME credentials.
+
 ### Type
 ```
 string
@@ -1280,6 +1368,7 @@ string
 ## services.hysteria.server.settings.acme.dns
 ACME DNS can obtain certificates through the DNS service provider API. T
 his function does not rely on specific ports (does not occupy 80/443) and external access.
+
 ### Type
 ```
 null or (submodule)
@@ -1292,6 +1381,7 @@ null
  
 ## services.hysteria.server.settings.acme.dns.config
 ACME DNS provider configuration. [ACME DNS Config documentation](https://v2.hysteria.network/docs/advanced/ACME-DNS-Config/)
+
 ### Type
 ```
 null or (attribute set of string)
@@ -1310,6 +1400,7 @@ null
  
 ## services.hysteria.server.settings.acme.dns.name
 Name of the DNS provider.
+
 ### Type
 ```
 null or one of "cloudflare", "duckdns", "gandi", "godaddy", "namedotcom", "vultr"
@@ -1326,6 +1417,7 @@ null
  
 ## services.hysteria.server.settings.acme.domains
 Your domains
+
 ### Type
 ```
 list of string
@@ -1345,6 +1437,7 @@ list of string
  
 ## services.hysteria.server.settings.acme.email
 Your email address
+
 ### Type
 ```
 string
@@ -1361,7 +1454,9 @@ null
  
 ## services.hysteria.server.settings.acme.http.altPort
 Listening port for HTTP challenges.
-(**Note**: Changing to a port other than 80 requires port forwarding or HTTP reverse proxy, or the challenge will fail!)
+
+> **NOTE**: Changing to a port other than 80 requires port forwarding or HTTP reverse proxy, or the challenge will fail!
+
 ### Type
 ```
 null or signed integer
@@ -1379,6 +1474,7 @@ null
 ## services.hysteria.server.settings.acme.listenHost
 Listening address for ACME verification (no port). 
 Defaults to listening on all available interfaces.
+
 ### Type
 ```
 string
@@ -1395,7 +1491,9 @@ string
  
 ## services.hysteria.server.settings.acme.tls.altPort
 Listening port for TLS-ALPN challenges.
-(**Note**: Changing to a port other than 443 requires port forwarding or TLS reverse proxy, or the challenge will fail!)
+
+> **NOTE**: Changing to a port other than 443 requires port forwarding or TLS reverse proxy, or the challenge will fail!
+
 ### Type
 ```
 null or signed integer
@@ -1412,6 +1510,7 @@ null
  
 ## services.hysteria.server.settings.acme.type
 ACME challenge type.
+
 ### Type
 ```
 null or one of "http", "tls", "dns"
@@ -1435,6 +1534,7 @@ Authentication payload:
      "tx": 123456
   }
 ```
+
 ### Type
 ```
 null or (submodule)
@@ -1455,6 +1555,7 @@ the server will execute the specified command with the following arguments from 
 The command must print the client's unique identifier to `stdout` and return with exit code 0 if the client is allowed to connect,
 or return with a non-zero exit code if the client is rejected.
 If the command fails to execute, the client will be rejected.
+
 ### Type
 ```
 null or string
@@ -1475,10 +1576,11 @@ Your endpoint must respond with a JSON object with the following fields:
 ```json
 {
   "ok": true,
-    "id": "john_doe"
+  "id": "john_doe"
 }
 ```
-> NOTE: The HTTP status code must be 200 for the authentication to be considered successful.
+> **NOTE**: The HTTP status code must be 200 for the authentication to be considered successful.
+
 ### Type
 ```
 null or (submodule)
@@ -1491,6 +1593,7 @@ null
  
 ## services.hysteria.server.settings.auth.http.insecure
 Disable TLS verification for the backend server (only applies to HTTPS URLs).
+
 ### Type
 ```
 boolean
@@ -1507,6 +1610,7 @@ true
  
 ## services.hysteria.server.settings.auth.http.url
 The URL of the backend server that handles authentication.
+
 ### Type
 ```
 null or string
@@ -1523,6 +1627,7 @@ null
  
 ## services.hysteria.server.settings.auth.password
 Replace with a strong password of your choice.
+
 ### Type
 ```
 null or string
@@ -1539,6 +1644,7 @@ null
  
 ## services.hysteria.server.settings.auth.type
 Authentication type.
+
 ### Type
 ```
 one of "password", "userpass", "http", "command"
@@ -1555,6 +1661,7 @@ one of "password", "userpass", "http", "command"
  
 ## services.hysteria.server.settings.auth.userpass
 A map of username-password pairs.
+
 ### Type
 ```
 null or (attribute set of string)
@@ -1575,7 +1682,9 @@ null
  
 ## services.hysteria.server.settings.bandwidth
 The bandwidth values on the server side act as speed limits, limiting the maximum rate at which the server will send and receive data (per client).
-**Note that the server's upload speed is the client's download speed, and vice versa.**
+
+> **NOTE**: that the server's upload speed is the client's download speed, and vice versa.
+
 You can omit these values or set them to zero on either or both sides, which would mean no limit.
 Supported units are:
 + bps or b (bits per second)
@@ -1583,6 +1692,7 @@ Supported units are:
 + mbps or mb or m (megabits per second)
 + gbps or gb or g (gigabits per second)
 + tbps or tb or t (terabits per second)
+
 ### Type
 ```
 null or (submodule)
@@ -1595,6 +1705,7 @@ null
  
 ## services.hysteria.server.settings.bandwidth.down
 The server's download bandwidth.
+
 ### Type
 ```
 string
@@ -1611,6 +1722,7 @@ string
  
 ## services.hysteria.server.settings.bandwidth.up
 The server's upload bandwidth.
+
 ### Type
 ```
 string
@@ -1627,6 +1739,7 @@ string
  
 ## services.hysteria.server.settings.disableUDP
 `disableUDP` disables UDP forwarding, only allowing TCP connections.
+
 ### Type
 ```
 boolean
@@ -1648,6 +1761,7 @@ This effectively overrides any bandwidth values set by clients in both direction
 This feature is primarily useful for server owners who prefer congestion fairness over other network traffic,
 or who do not trust users to accurately set their own bandwidth values.
 [Bandwidth negotiation process](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#bandwidth-negotiation-process)
+
 ### Type
 ```
 boolean
@@ -1667,6 +1781,7 @@ The server's listen address.
 When the IP address is omitted, the server will listen on all interfaces, both IPv4 and IPv6.
 To listen on IPv4 only, you can use `0.0.0.0:443`.
 To listen on IPv6 only, you can use `[::]:443`.
+
 ### Type
 ```
 string
@@ -1688,6 +1803,7 @@ Currently, Hysteria provides the following masquerade modes:
 + `string`: Act as a server that always returns a user-supplied string.
 
 [HTTP/HTTPS Masquerading documentation](https://v2.hysteria.network/docs/advanced/Full-Server-Config/#httphttps-masquerading)
+
 ### Type
 ```
 null or (submodule)
@@ -1700,6 +1816,7 @@ null
  
 ## services.hysteria.server.settings.masquerade.file.dir
 The directory to serve files from.
+
 ### Type
 ```
 null or path
@@ -1717,6 +1834,7 @@ null
 ## services.hysteria.server.settings.masquerade.forceHTTPS
 Whether to force HTTPS.
 If enabled, all HTTP requests will be redirected to HTTPS.
+
 ### Type
 ```
 boolean
@@ -1733,6 +1851,7 @@ false
  
 ## services.hysteria.server.settings.masquerade.listenHTTP
 HTTP (TCP) listen address.
+
 ### Type
 ```
 string
@@ -1745,6 +1864,7 @@ string
  
 ## services.hysteria.server.settings.masquerade.listenHTTPS
 HTTPS (TCP) listen address.
+
 ### Type
 ```
 string
@@ -1757,6 +1877,7 @@ string
  
 ## services.hysteria.server.settings.masquerade.proxy
 Use a proxy for masquerading.
+
 ### Type
 ```
 null or (submodule)
@@ -1770,6 +1891,7 @@ null
 ## services.hysteria.server.settings.masquerade.proxy.rewriteHost
 Whether to rewrite the Host header to match the proxied website.
 This is required if the target web server uses Host to determine which site to serve.
+
 ### Type
 ```
 boolean
@@ -1786,6 +1908,7 @@ true
  
 ## services.hysteria.server.settings.masquerade.proxy.url
 The URL of the website to proxy.
+
 ### Type
 ```
 null or string
@@ -1802,6 +1925,7 @@ null
  
 ## services.hysteria.server.settings.masquerade.string
 Use a string for masquerading.
+
 ### Type
 ```
 null or (submodule)
@@ -1814,6 +1938,7 @@ null
  
 ## services.hysteria.server.settings.masquerade.string.content
 The string to return.
+
 ### Type
 ```
 null or string
@@ -1830,6 +1955,7 @@ null
  
 ## services.hysteria.server.settings.masquerade.string.headers
 Optional. The headers to return.
+
 ### Type
 ```
 null or (attribute set of string)
@@ -1842,6 +1968,7 @@ null
  
 ## services.hysteria.server.settings.masquerade.string.statusCode
 Optional. The status code to return.
+
 ### Type
 ```
 signed integer
@@ -1858,6 +1985,7 @@ signed integer
  
 ## services.hysteria.server.settings.masquerade.type
 Masquerade type
+
 ### Type
 ```
 one of "file", "proxy", "string"
@@ -1877,6 +2005,7 @@ By default, the Hysteria protocol mimics HTTP/3.
 If your network specifically blocks QUIC or HTTP/3 traffic (but not UDP in general), obfuscation can be used to work around this.
 We currently have an obfuscation implementation called "Salamander" that converts packets into seamingly random bytes with no pattern.
 This feature requires a password that must be identical on both the client and server sides.
+
 ### Type
 ```
 null or (submodule)
@@ -1889,6 +2018,7 @@ null
  
 ## services.hysteria.server.settings.obfs.salamander.password
 Replace with a strong password of your choice.
+
 ### Type
 ```
 null or string
@@ -1905,6 +2035,7 @@ null
  
 ## services.hysteria.server.settings.obfs.type
 Obfuscation type
+
 ### Type
 ```
 value "salamander" (singular enum)
@@ -1924,9 +2055,10 @@ Currently, Hysteria supports the following outbound types:
 + socks5: SOCKS5 proxy.
 + http: HTTP/HTTPS proxy.
 
-> NOTE: HTTP/HTTPS proxies do not support UDP at the protocol level. Sending UDP traffic to HTTP outbounds will result in rejection.
+> **NOTE**: HTTP/HTTPS proxies do not support UDP at the protocol level. Sending UDP traffic to HTTP outbounds will result in rejection.
 
 **If you do not use ACL, all connections will always be routed through the first ("default") outbound in the list, and all other outbounds will be ignored.**
+
 ### Type
 ```
 null or (list of (submodule))
@@ -1975,8 +2107,11 @@ null
  
 ## services.hysteria.server.settings.outbounds.*.direct
 The direct outbound has a few additional options that can be used to customize its behavior:
-> NOTE: The options `bindIPv4`, `bindIPv6`, and `bindDevice` are mutually exclusive.
+
+> **NOTE**: The options `bindIPv4`, `bindIPv6`, and `bindDevice` are mutually exclusive.
+
 > You can either specify `bindIPv4` and/or `bindIPv6` without `bindDevice`, or use `bindDevice` without `bindIPv4` and `bindIPv6`.
+
 ### Type
 ```
 null or (submodule)
@@ -1989,6 +2124,7 @@ null
  
 ## services.hysteria.server.settings.outbounds.*.direct.bindDevice
 The local network interface to bind to.
+
 ### Type
 ```
 null or string
@@ -2005,6 +2141,7 @@ null
  
 ## services.hysteria.server.settings.outbounds.*.direct.bindIPv4
 The local IPv4 address to bind to.
+
 ### Type
 ```
 null or string
@@ -2021,6 +2158,7 @@ null
  
 ## services.hysteria.server.settings.outbounds.*.direct.bindIPv6
 The local IPv6 address to bind to.
+
 ### Type
 ```
 null or string
@@ -2042,6 +2180,7 @@ The available mode values are:
 + `46`: Always use IPv4 if available, otherwise use IPv6.
 + `6`: Always use IPv6. Fail if no IPv6 address is available.
 + `4`: Always use IPv4. Fail if no IPv4 address is available.
+
 ### Type
 ```
 one of "auto", "64", "46", "6", "4"
@@ -2054,6 +2193,7 @@ one of "auto", "64", "46", "6", "4"
  
 ## services.hysteria.server.settings.outbounds.*.http.insecure
 Optional. Whether to disable TLS verification. Applies to HTTPS proxies only.
+
 ### Type
 ```
 boolean
@@ -2070,6 +2210,7 @@ true
  
 ## services.hysteria.server.settings.outbounds.*.http.url
 The URL of the HTTP/HTTPS proxy. (Can be `http://` or `https://`)
+
 ### Type
 ```
 null or string
@@ -2086,6 +2227,7 @@ null
  
 ## services.hysteria.server.settings.outbounds.*.name
 The name of the outbound. This is used in ACL rules.
+
 ### Type
 ```
 null or string
@@ -2102,6 +2244,7 @@ null
  
 ## services.hysteria.server.settings.outbounds.*.socks5.addr
 The address of the SOCKS5 proxy.
+
 ### Type
 ```
 null or string
@@ -2118,6 +2261,7 @@ null
  
 ## services.hysteria.server.settings.outbounds.*.socks5.password
 Optional. The password for the SOCKS5 proxy, if authentication is required.
+
 ### Type
 ```
 null or string
@@ -2134,6 +2278,7 @@ null
  
 ## services.hysteria.server.settings.outbounds.*.socks5.username
 Optional. The username for the SOCKS5 proxy, if authentication is required.
+
 ### Type
 ```
 null or string
@@ -2150,6 +2295,7 @@ null
  
 ## services.hysteria.server.settings.outbounds.*.type
 Type of outbound
+
 ### Type
 ```
 one of "direct", "socks5", "http"
@@ -2168,6 +2314,7 @@ one of "direct", "socks5", "http"
 The default stream and connection receive window sizes are 8MB and 20MB, respectively.
 **We do not recommend changing these values unless you fully understand what you are doing.**
 If you choose to change these values, we recommend keeping the ratio of stream receive window to connection receive window at 2:5.
+
 ### Type
 ```
 null or (submodule)
@@ -2180,6 +2327,7 @@ null
  
 ## services.hysteria.server.settings.quic.disablePathMTUDiscovery
 Disable QUIC path MTU discovery.
+
 ### Type
 ```
 boolean
@@ -2196,6 +2344,7 @@ true
  
 ## services.hysteria.server.settings.quic.initConnReceiveWindow
 The initial QUIC connection receive window size.
+
 ### Type
 ```
 signed integer
@@ -2208,6 +2357,7 @@ signed integer
  
 ## services.hysteria.server.settings.quic.initStreamReceiveWindow
 The initial QUIC stream receive window size.
+
 ### Type
 ```
 signed integer
@@ -2220,6 +2370,7 @@ signed integer
  
 ## services.hysteria.server.settings.quic.maxConnReceiveWindow
 The maximum QUIC connection receive window size.
+
 ### Type
 ```
 signed integer
@@ -2233,6 +2384,7 @@ signed integer
 ## services.hysteria.server.settings.quic.maxIdleTimeout
 The maximum idle timeout.
 How long the server will consider the client still connected without any activity.
+
 ### Type
 ```
 string
@@ -2249,6 +2401,7 @@ string
  
 ## services.hysteria.server.settings.quic.maxIncomingStreams
 The maximum number of concurrent incoming streams.
+
 ### Type
 ```
 signed integer
@@ -2265,6 +2418,7 @@ signed integer
  
 ## services.hysteria.server.settings.quic.maxStreamReceiveWindow
 The maximum QUIC stream receive window size.
+
 ### Type
 ```
 signed integer
@@ -2278,6 +2432,7 @@ signed integer
 ## services.hysteria.server.settings.resolver
 You can specify what **resolver** (DNS server) to use to resolve domain names in client requests.
 If omitted, Hysteria will use the system's default **resolver**.
+
 ### Type
 ```
 null or (submodule)
@@ -2290,6 +2445,7 @@ null
  
 ## services.hysteria.server.settings.resolver.https.addr
 The address of the HTTPS resolver.
+
 ### Type
 ```
 string
@@ -2302,6 +2458,7 @@ string
  
 ## services.hysteria.server.settings.resolver.https.insecure
 Disable TLS verification for the TLS resolver.
+
 ### Type
 ```
 boolean
@@ -2318,6 +2475,7 @@ true
  
 ## services.hysteria.server.settings.resolver.https.sni
 The SNI to use for the TLS resolver.
+
 ### Type
 ```
 string
@@ -2330,6 +2488,7 @@ string
  
 ## services.hysteria.server.settings.resolver.https.timeout
 The timeout for DNS queries.
+
 ### Type
 ```
 string
@@ -2346,6 +2505,7 @@ string
  
 ## services.hysteria.server.settings.resolver.tcp.addr
 The address of the TCP resolver.
+
 ### Type
 ```
 string
@@ -2358,6 +2518,7 @@ string
  
 ## services.hysteria.server.settings.resolver.tcp.timeout
 The timeout for DNS queries.
+
 ### Type
 ```
 string
@@ -2374,6 +2535,7 @@ string
  
 ## services.hysteria.server.settings.resolver.tls.addr
 The address of the TLS resolver.
+
 ### Type
 ```
 string
@@ -2386,6 +2548,7 @@ string
  
 ## services.hysteria.server.settings.resolver.tls.insecure
 Disable TLS verification for the TLS resolver.
+
 ### Type
 ```
 boolean
@@ -2402,6 +2565,7 @@ true
  
 ## services.hysteria.server.settings.resolver.tls.sni
 The SNI to use for the TLS resolver.
+
 ### Type
 ```
 string
@@ -2414,6 +2578,7 @@ string
  
 ## services.hysteria.server.settings.resolver.tls.timeout
 The timeout for DNS queries.
+
 ### Type
 ```
 string
@@ -2426,6 +2591,7 @@ string
  
 ## services.hysteria.server.settings.resolver.type
 Resolver type
+
 ### Type
 ```
 null or one of "tcp", "udp", "tls", "https"
@@ -2442,6 +2608,7 @@ null
  
 ## services.hysteria.server.settings.resolver.udp.addr
 The address of the UDP resolver.
+
 ### Type
 ```
 string
@@ -2454,6 +2621,7 @@ string
  
 ## services.hysteria.server.settings.resolver.udp.timeout
 The timeout for DNS queries.
+
 ### Type
 ```
 string
@@ -2471,6 +2639,7 @@ string
 ## services.hysteria.server.settings.sniff
 Certificates are read on every TLS handshake.
 This means you can update the files without restarting the server.
+
 ### Type
 ```
 null or (submodule)
@@ -2483,6 +2652,7 @@ null
  
 ## services.hysteria.server.settings.sniff.enable
 Whether to enable protocol sniffing.
+
 ### Type
 ```
 boolean
@@ -2500,6 +2670,7 @@ true
 ## services.hysteria.server.settings.sniff.rewriteDomain
 Whether to rewrite requests that are already in domain name form. 
 If enabled, requests with the target address already in domain name form will still be sniffed.
+
 ### Type
 ```
 boolean
@@ -2516,6 +2687,7 @@ true
  
 ## services.hysteria.server.settings.sniff.tcpPorts
 List of TCP ports. Only TCP requests on these ports will be sniffed.
+
 ### Type
 ```
 null or string
@@ -2533,6 +2705,7 @@ null
 ## services.hysteria.server.settings.sniff.timeout
 Sniffing timeout. If the protocol/domain cannot be determined within this time, 
 the original address will be used to initiate the connection.
+
 ### Type
 ```
 null or string
@@ -2549,6 +2722,7 @@ null
  
 ## services.hysteria.server.settings.sniff.udpPorts
 List of UDP ports. Only UDP requests on these ports will be sniffed.
+
 ### Type
 ```
 null or string
@@ -2567,6 +2741,7 @@ null
 `speedTest` enables the built-in speed test server.
 When enabled, clients can test their download and upload speeds with the server.
 For more information, see the [Speed Test documentation](https://v2.hysteria.network/docs/advanced/Speed-Test/).
+
 ### Type
 ```
 boolean
@@ -2584,6 +2759,7 @@ true
 ## services.hysteria.server.settings.tls
 Certificates are read on every TLS handshake.
 This means you can update the files without restarting the server.
+
 ### Type
 ```
 null or (submodule)
@@ -2596,6 +2772,7 @@ null
  
 ## services.hysteria.server.settings.tls.cert
 TLS certificate
+
 ### Type
 ```
 null or path
@@ -2612,6 +2789,7 @@ null
  
 ## services.hysteria.server.settings.tls.key
 TLS private key
+
 ### Type
 ```
 null or path
@@ -2626,11 +2804,38 @@ null
 ```
 ---
  
+## services.hysteria.server.settings.tls.sniGuard
+Verify the SNI provided by the client. 
+Accept the connection only when it matches what's in the certificate. 
+Terminate the TLS handshake otherwise.
+Set to `strict` to enforce this behavior.
+Set to `disable` to disable this entirely.
+The default is `dns-san`, which enables this feature 
+only when the certificate contains the "Subject Alternative Name" 
+extension with a domain name in it.
+
+### Type
+```
+null or one of "strict", "disable", "dns-san"
+```
+### Default
+```nix
+null
+```
+### Example 
+```nix
+"strict"
+```
+---
+ 
 ## services.hysteria.server.settings.trafficStats
 The Traffic Stats API allows you to query the server's traffic statistics and kick clients using an HTTP API.
 For endpoints and usage, please refer to the [Traffic Stats API documentation](https://v2.hysteria.network/docs/advanced/Traffic-Stats-API/).
-> NOTE: If you don't set a secret, anyone with access to your API listening address will be able to see traffic stats and kick users.
+
+> **NOTE**: If you don't set a secret, anyone with access to your API listening address will be able to see traffic stats and kick users.
+
 > We strongly recommend setting a secret, or at least using ACL to block users from accessing the API.
+
 ### Type
 ```
 null or (submodule)
@@ -2643,6 +2848,7 @@ null
  
 ## services.hysteria.server.settings.trafficStats.listen
 The address to listen on.
+
 ### Type
 ```
 null or string
@@ -2659,6 +2865,7 @@ null
  
 ## services.hysteria.server.settings.trafficStats.secret
 The secret key to use for authentication. Attach this to the `Authorization` header in your HTTP requests.
+
 ### Type
 ```
 null or string
@@ -2676,6 +2883,7 @@ null
 ## services.hysteria.server.settings.udpIdleTimeout
 `udpIdleTimeout` specifies the amount of time the server will keep a local UDP port open for each UDP session that has no activity.
 This is conceptually similar to the NAT UDP session timeout.
+
 ### Type
 ```
 string
@@ -2692,6 +2900,7 @@ string
  
 ## services.hysteria.server.settingsFile
 Path to file containing Hysteria settings.
+
 ### Type
 ```
 null or path
@@ -2704,6 +2913,7 @@ null
  
 ## services.hysteria.server.user
 Username of the Hysteria user
+
 ### Type
 ```
 string
