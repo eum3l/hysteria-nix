@@ -309,6 +309,20 @@ with lib.types;
                       description = "TLS private key";
                       type = path;
                     };
+                    sniGuard = mkFormatsOption {
+                      example = "strict";
+                      type = enum ["strict" "disable" "dns-san"];
+                      description = ''
+                        Verify the SNI provided by the client. 
+                        Accept the connection only when it matches what's in the certificate. 
+                        Terminate the TLS handshake otherwise.
+                        Set to ´strict´ to enforce this behavior.
+                        Set to ´disable´ to disable this entirely.
+                        The default is ´dns-san´, which enables this feature 
+                        only when the certificate contains the "Subject Alternative Name" 
+                        extension with a domain name in it.
+                      '';
+                    };
                   };
                 };
               };
