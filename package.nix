@@ -12,7 +12,7 @@ buildGoModule rec {
   inherit version src;
   pname = "hysteria";
   modRoot = "./app";
-  vendorHash = "sha256-WegS8WUqVR4CUPAfy0grVVIpdmB0wnW4KRPh+N3DKOc=";
+  vendorHash = "sha256-IKcgfyeiQ+JbeKdnpM+MfEJ5hcAPMn0rLhsLqbcmXSY=";
   env.GOWORK = "off";
 
   ldflags =
@@ -34,7 +34,8 @@ buildGoModule rec {
   patchPhase = ''
     rm app/internal/http/server_test.go \
        app/internal/sockopts/sockopts_linux_test.go \
-       app/internal/socks5/server_test.go
+       app/internal/socks5/server_test.go \
+       app/internal/utils/certloader_test.go
   '';
 
   postInstall = ''

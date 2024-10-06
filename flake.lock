@@ -78,16 +78,16 @@
     "src": {
       "flake": false,
       "locked": {
-        "lastModified": 1723867609,
-        "narHash": "sha256-ynG06sthqsKNGJdraHg8EkWNENfiv7E0O33wTKy2QG4=",
+        "lastModified": 1728106436,
+        "narHash": "sha256-ClWbA3cjQXK8tzXfmApBQ+TBnbRc6f36G1iIFcNQi7o=",
         "owner": "apernet",
         "repo": "hysteria",
-        "rev": "4c04660684df0b794e5a79373f7df091858be964",
+        "rev": "b960beabbd4bbdedc49c7b4f08ad137a4ee70442",
         "type": "github"
       },
       "original": {
         "owner": "apernet",
-        "ref": "app/v2.5.1",
+        "ref": "app/v2.5.2",
         "repo": "hysteria",
         "type": "github"
       }
