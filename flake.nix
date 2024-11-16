@@ -81,9 +81,5 @@ rec {
     )
     // {
       nixosModules.default = import ./module.nix self.packages;
-
-      hydraJobs = {
-        inherit (self) packages;
-      };
     };
 }

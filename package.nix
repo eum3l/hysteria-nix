@@ -31,13 +31,18 @@ buildGoModule rec {
         )) 0
       );
       goPlatform = index: elemAt (split "/" (elemAt (split " " goVersion) 2)) index;
-
     in
     [
       "-s"
       "-w"
     ]
     ++ builtins.map (list: "-X '${cmd}.${builtins.elemAt list 0}=${builtins.elemAt list 1}'") [
+      [
+        "libVersion"
+        (elemAt (split "\n" (
+          elemAt (match ".*github.com\/apernet\/quic-go (.*)" (readFile (src + "/core/go.mod"))) 0
+        )) 0)
+      ]
       [
         "appVersion"
         version
@@ -61,12 +66,6 @@ buildGoModule rec {
       [
         "appArch"
         (goPlatform 2)
-      ]
-      [
-        "libVersion"
-        (elemAt (split "\n" (
-          elemAt (match ".*github.com\/apernet\/quic-go (.*)" (readFile (src + "/core/go.mod"))) 0
-        )) 0)
       ]
       [
         "appToolchain"
