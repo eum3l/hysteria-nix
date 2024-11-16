@@ -16,7 +16,7 @@ rec {
       type = "github";
       owner = "apernet";
       repo = "hysteria";
-      ref = "app/v2.5.2";
+      ref = "app/v2.6.0";
       flake = false;
     };
   };

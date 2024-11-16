@@ -3,7 +3,8 @@
   platforms,
   src,
   buildGoModule,
-  system,
+  go,
+  runCommand,
   version,
   lastModifiedDate,
   rev,
@@ -12,23 +13,65 @@ buildGoModule rec {
   inherit version src;
   pname = "hysteria";
   modRoot = "./app";
-  vendorHash = "sha256-IKcgfyeiQ+JbeKdnpM+MfEJ5hcAPMn0rLhsLqbcmXSY=";
+  vendorHash = "sha256-IRdC+imF4MwER9ZSH5vQnm3hu7jqNw5Pfi62JU6Y9l8=";
   env.GOWORK = "off";
 
   ldflags =
     let
+      inherit (builtins)
+        elemAt
+        readFile
+        split
+        match
+        ;
       cmd = "github.com/apernet/hysteria/app/v2/cmd";
-      pla-arc = index: builtins.elemAt (builtins.split "-" system) index;
+      goVersion = (
+        elemAt (match ".*(go.*)\n" (
+          readFile (runCommand "go-version.txt" { } "${go}/bin/go version > $out")
+        )) 0
+      );
+      goPlatform = index: elemAt (split "/" (elemAt (split " " goVersion) 2)) index;
+
     in
     [
       "-s"
       "-w"
-      "-X ${cmd}.appVersion=${version}"
-      "-X ${cmd}.appDate=${lastModifiedDate}"
-      "-X ${cmd}.appType=release"
-      "-X ${cmd}.appCommit=${rev}"
-      "-X ${cmd}.appPlatform=${pla-arc 2}"
-      "-X ${cmd}.appArch=${pla-arc 0}"
+    ]
+    ++ builtins.map (list: "-X '${cmd}.${builtins.elemAt list 0}=${builtins.elemAt list 1}'") [
+      [
+        "appVersion"
+        version
+      ]
+      [
+        "appDate"
+        lastModifiedDate
+      ]
+      [
+        "appType"
+        "release"
+      ]
+      [
+        "appCommit"
+        rev
+      ]
+      [
+        "appPlatform"
+        (goPlatform 0)
+      ]
+      [
+        "appArch"
+        (goPlatform 2)
+      ]
+      [
+        "libVersion"
+        (elemAt (split "\n" (
+          elemAt (match ".*github.com\/apernet\/quic-go (.*)" (readFile (src + "/core/go.mod"))) 0
+        )) 0)
+      ]
+      [
+        "appToolchain"
+        goVersion
+      ]
     ];
 
   patchPhase = ''
