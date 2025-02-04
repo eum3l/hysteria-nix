@@ -16,7 +16,7 @@ rec {
       type = "github";
       owner = "apernet";
       repo = "hysteria";
-      ref = "app/v2.6.0";
+      ref = "app/v2.6.1";
       flake = false;
     };
   };
@@ -47,6 +47,7 @@ rec {
       in
       rec {
         formatter = pkgs.nixfmt-rfc-style;
+        checks.default = pkgs.callPackage ./check { hysteria = self.nixosModules.default; };
 
         packages = rec {
           default = hysteria;
@@ -54,6 +55,7 @@ rec {
             inherit platforms src;
             inherit (self.inputs.src) lastModifiedDate rev;
             version = pkgs.lib.removePrefix "app/v" inputs.src.ref;
+            vendorHash = "sha256-Wtbiv65iDC+3jAfYyoZXjIrwI/nqNB0ZHzC1f12+nxc=";
           };
 
           options = options-nix.lib.mkOptionScript {
@@ -63,12 +65,9 @@ rec {
           };
         };
 
-        checks.default = pkgs.callPackage ./check { hysteria = self.nixosModules.default; };
-
         devShells.default = pkgs.mkShellNoCC {
           HYSTERIA_LOG_LEVEL = "debug";
           HYSTERIA_TMP = "/tmp/hysteria";
-
           inputsFrom = [ packages.hysteria ];
 
           shellHook = ''

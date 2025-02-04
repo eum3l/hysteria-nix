@@ -5,15 +5,15 @@
   buildGoModule,
   go,
   runCommand,
+  vendorHash,
   version,
   lastModifiedDate,
   rev,
 }:
 buildGoModule rec {
-  inherit version src;
+  inherit version src vendorHash;
   pname = "hysteria";
   modRoot = "./app";
-  vendorHash = "sha256-IRdC+imF4MwER9ZSH5vQnm3hu7jqNw5Pfi62JU6Y9l8=";
   env.GOWORK = "off";
 
   ldflags =
