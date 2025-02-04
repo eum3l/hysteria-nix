@@ -1888,6 +1888,23 @@ null
 ```
 ---
  
+## services.hysteria.server.settings.masquerade.proxy.insecure
+Disable TLS verification for the proxied website.
+
+### Type
+```
+boolean
+```
+### Default
+```nix
+false
+```
+### Example 
+```nix
+true
+```
+---
+ 
 ## services.hysteria.server.settings.masquerade.proxy.rewriteHost
 Whether to rewrite the Host header to match the proxied website.
 This is required if the target web server uses Host to determine which site to serve.
@@ -2170,6 +2187,23 @@ null
 ### Example 
 ```nix
 "0:0:0:0:0:ffff:0204:0608"
+```
+---
+ 
+## services.hysteria.server.settings.outbounds.*.direct.fastOpen
+Enable TCP fast open.
+
+### Type
+```
+boolean
+```
+### Default
+```nix
+false
+```
+### Example 
+```nix
+true
 ```
 ---
  
