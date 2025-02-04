@@ -951,21 +951,24 @@ with lib.types;
                           };
                           bindIPv4 = mkFormatsOption {
                             example = "2.4.6.8";
-                            description = "The local IPv4 address to bind to.
-";
+                            description = "The local IPv4 address to bind to.";
                             type = str;
                           };
                           bindIPv6 = mkFormatsOption {
                             example = "0:0:0:0:0:ffff:0204:0608";
-                            description = "The local IPv6 address to bind to.
-";
+                            description = "The local IPv6 address to bind to.";
                             type = str;
                           };
                           bindDevice = mkFormatsOption {
                             example = "eth233";
-                            description = "The local network interface to bind to.
-";
+                            description = "The local network interface to bind to.";
                             type = str;
+                          };
+                          fastOpen = mkFormatsOption {
+                            default = false;
+                            example = true;
+                            description = "Enable TCP fast open.";
+                            type = bool;
                           };
                         };
                       };
@@ -1050,6 +1053,12 @@ with lib.types;
                             '';
                             example = true;
                             default = false;
+                            type = bool;
+                          };
+                          insecure = mkFormatsOption {
+                            default = false;
+                            example = true;
+                            description = "Disable TLS verification for the proxied website.";
                             type = bool;
                           };
                         };
